@@ -20,3 +20,54 @@ Just make sure you are using english/spanish language.
 ## Bugs
 
 If you find any bug and believe it should be fixed, submit an issue in [issues section](https://github.com/MillhioreBT/forgottenserver-downgrade/issues), just please follow the issue template.
+-
+-
+-
+- stack + 10
+- Tile(position) if tile is  isItem()  always is :getGround()
+- does not save shader item after logout "WARNING: Serialize error in IOLoginData::loadItems"
+-
+-
+-
+-
+-
+-
+
+## Server compatible with new-layout
+
+test client: https://github.com/Nottinghster/otclient/tree/new-layout
+```lua
+  
+player:setMapShader(shaderName, [temporary])
+player:getMapShader()
+
+creature:setShader(shaderName)
+creature:getShader()
+creature:detachEffectById(effectId)
+creature:attachEffectById(effectId, [temporary])
+```
+
+Example: 
+```lua
+!mapShader 'Map - Heat'
+!itemSetShader no yet
+!playerSetShader "Map - Heat"
+!detacheffect 11
+!attacheffect 11
+```
+attacheffect monter:
+```
+
+<monster name="Orc" nameDescription="an orc" race="blood" experience="25" speed="150" manacost="300" raceId="5" shaderEffect = "Outfit - Rainbow" auraEffect = "8" wignsEffect ="11" rayosEffect="7" >
+
+```
+
+
+> [!IMPORTANT]
+> Active features OTC
+
+        g_game.enableFeature(GameCreatureShader)
+        g_game.enableFeature(GameCreatureAttachedEffect) 
+        g_game.enableFeature(GameClientPing)
+        g_game.enableFeature(GamePlayerMounts);
+        g_game.enableFeature(GameItemShader)
