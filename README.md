@@ -24,8 +24,8 @@ If you find any bug and believe it should be fixed, submit an issue in [issues s
 -
 -
 - stack + 10
-- Tile(position) if tile is  isItem()  always is :getGround()
-- does not save shader item after logout "WARNING: Serialize error in IOLoginData::loadItems"
+- Tile(position) if things is  isItem()  always is :getGround()
+- does not save shader item after logout "WARNING: Serialize error in IOLoginData::loadItems" ( probably in item.h )
 -
 -
 -
@@ -33,9 +33,11 @@ If you find any bug and believe it should be fixed, submit an issue in [issues s
 -
 -
 
+quick version 3 am
 ## Server compatible with new-layout
 
 test client: https://github.com/Nottinghster/otclient/tree/new-layout
+(also compatible with old client)
 ```lua
   
 player:setMapShader(shaderName, [temporary])
@@ -55,7 +57,7 @@ Example:
 !detacheffect 11
 !attacheffect 11
 ```
-attacheffect monter:
+attacheffect monster:
 ```
 
 <monster name="Orc" nameDescription="an orc" race="blood" experience="25" speed="150" manacost="300" raceId="5" shaderEffect = "Outfit - Rainbow" auraEffect = "8" wignsEffect ="11" rayosEffect="7" >
