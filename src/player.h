@@ -685,7 +685,32 @@ public:
 			client->sendInventoryItem(slot, item);
 		}
 	}
+	void sendAttachedEffect(const Creature* creature, uint16_t effectId)
+	{
+		if (client) {
+			client->sendAttachedEffect(creature, effectId);
+		}
+	}
 
+	void sendDetachEffect(const Creature* creature, uint16_t effectId)
+	{
+		if (client) {
+			client->sendDetachEffect(creature, effectId);
+		}
+	}
+
+	void sendShader(const Creature* creature, const std::string& shaderName)
+	{
+		if (client) {
+			client->sendShader(creature, shaderName);
+		}
+	}
+	void sendMapShader(const std::string& shaderName)
+	{
+		if (client) {
+			client->sendMapShader(shaderName);
+		}
+	}
 	// event methods
 	void onUpdateTileItem(const Tile* tile, const Position& pos, const Item* oldItem, const ItemType& oldType,
 	                      const Item* newItem, const ItemType& newType) override;
@@ -976,6 +1001,8 @@ public:
 	bool isOTCv8() const { return client ? client->isOTCv8 : false; }
 
 	static uint32_t playerAutoID;
+	std::string getMapShader() const { return mapShader; }
+	void setMapShader(const std::string& shaderName) { mapShader = shaderName; }
 
 private:
 	std::forward_list<Condition*> getMuteConditions() const;
@@ -1042,6 +1069,7 @@ private:
 
 	std::string name;
 	std::string guildNick;
+	std::string mapShader;
 
 	Skill skills[SKILL_LAST + 1];
 	LightInfo itemsLight;

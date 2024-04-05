@@ -1072,6 +1072,72 @@ int luaCreatureSendCreatureSquare(lua_State* L)
 }
 } // namespace
 
+
+int luaCreatureAttachEffectById(lua_State* L)
+{
+	// creature:attachEffectById(effectId, [temporary])
+	Creature* creature = getUserdata<Creature>(L, 1);
+	if (!creature) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t id = getInteger<uint16_t>(L, 2);
+	bool temp = getBoolean(L, 3, false);
+
+	if (temp)
+		g_game.sendAttachedEffect(creature, id);
+	else
+		creature->attachEffectById(id);
+
+	return 1;
+}
+
+int luaCreatureDetachEffectById(lua_State* L)
+{
+	// creature:detachEffectById(effectId)
+	Creature* creature = getUserdata<Creature>(L, 1);
+	if (!creature) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t id = getInteger<uint16_t>(L, 2);
+	creature->detachEffectById(id);
+
+	return 1;
+}
+
+int luaCreatureGetShader(lua_State* L)
+{
+	// creature:getShader()
+	const auto* creature = getUserdata<const Creature>(L, 1);
+	if (creature) {
+		pushString(L, creature->getShader());
+	} else {
+		lua_pushnil(L);
+	}
+
+	return 1;
+}
+
+int luaCreatureSetShader(lua_State* L)
+{
+	// creature:setShader(shaderName)
+	auto* creature = getUserdata<Creature>(L, 1);
+	if (!creature) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	creature->setShader(getString(L, 2));
+	g_game.updateCreatureShader(creature);
+
+	pushBoolean(L, true);
+	return 1;
+}
+
+
 void LuaScriptInterface::registerCreature()
 {
 	// Creature
@@ -1110,6 +1176,9 @@ void LuaScriptInterface::registerCreature()
 
 	registerMethod("Creature", "getLight", luaCreatureGetLight);
 	registerMethod("Creature", "setLight", luaCreatureSetLight);
+
+	registerMethod("Creature", "getShader", luaCreatureGetShader);
+	registerMethod("Creature", "setShader", luaCreatureSetShader);
 
 	registerMethod("Creature", "getSpeed", luaCreatureGetSpeed);
 	registerMethod("Creature", "getBaseSpeed", luaCreatureGetBaseSpeed);
@@ -1161,4 +1230,6 @@ void LuaScriptInterface::registerCreature()
 	registerMethod("Creature", "setStorageValue", luaCreatureSetStorageValue);
 
 	registerMethod("Creature", "sendCreatureSquare", luaCreatureSendCreatureSquare);
+	registerMethod("Creature", "attachEffectById", luaCreatureAttachEffectById);
+	registerMethod("Creature", "detachEffectById", luaCreatureDetachEffectById);
 }

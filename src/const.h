@@ -4,7 +4,7 @@
 #ifndef FS_CONST_H
 #define FS_CONST_H
 
-inline constexpr int32_t NETWORKMESSAGE_MAXSIZE = 24590;
+inline constexpr int32_t NETWORKMESSAGE_MAXSIZE = 65500;
 
 enum MagicEffectClasses : uint8_t
 {

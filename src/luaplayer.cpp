@@ -2168,6 +2168,43 @@ int luaPlayerHasDebugAssertSent(lua_State* L)
 	return 1;
 }
 
+
+
+int luaPlayerGetMapShader(lua_State* L)
+{
+	// player:getMapShader()
+	const auto* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		pushString(L, player->getMapShader());
+	} else {
+		lua_pushnil(L);
+	}
+
+	return 1;
+}
+
+int luaPlayerSetMapShader(lua_State* L)
+{
+	// player:setMapShader(shaderName, [temporary])
+	auto* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const auto& shaderName = getString(L, 2);
+	bool temp = getBoolean(L, 3, false);
+
+	if (!temp) player->setMapShader(shaderName);
+
+	player->sendMapShader(shaderName);
+
+	pushBoolean(L, true);
+	return 1;
+}
+
+
+
 // OfflinePlayer
 int luaOfflinePlayerCreate(lua_State* L)
 {
@@ -2379,6 +2416,10 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "closeContainer", luaPlayerCloseContainer);
 
 	registerMethod("Player", "hasDebugAssertSent", luaPlayerHasDebugAssertSent);
+
+	registerMethod("Player", "getMapShader", luaPlayerGetMapShader);
+	registerMethod("Player", "setMapShader", luaPlayerSetMapShader);
+
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

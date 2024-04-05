@@ -335,6 +335,19 @@ bool Spawn::spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& p
 	monster->setSpawn(this);
 	monster->setMasterPos(pos);
 	monster->incrementReferenceCounter();
+	if (monster->rayosEffect() != 0) {
+		monster->attachEffectById(monster->rayosEffect());
+	}
+	if (monster->wignsEffect() != 0) {
+		monster->attachEffectById(monster->wignsEffect());
+	}
+	if (monster->auraEffect() != 0) {
+		monster->attachEffectById(monster->auraEffect());
+	}
+	if (monster->shaderEffect() != "") {
+		monster->setShader(monster->shaderEffect());
+		g_game.updateCreatureShader(monster);
+	}
 
 	spawnedMap.insert({spawnId, monster});
 	spawnMap[spawnId].lastSpawn = OTSYS_TIME();
