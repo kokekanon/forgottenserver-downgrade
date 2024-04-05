@@ -23,9 +23,10 @@ If you find any bug and believe it should be fixed, submit an issue in [issues s
 -
 -
 -
-- stack + 10
-- Tile(position) if things is  isItem()  always is :getGround()
-- does not save shader item after logout "WARNING: Serialize error in IOLoginData::loadItems" ( probably in item.h )
+- stack + 10 if you are not using v8 (main repo)
+- Tile(position) if things is  isItem()  always is :getGround() (main repo)
+- broadcast /b (main repo)
+- does not save shader item after logout "WARNING: Serialize error in IOLoginData::loadItems" ( probably in item.h ) (by incorporating shader)
 -
 -
 -
