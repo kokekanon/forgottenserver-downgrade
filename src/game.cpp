@@ -1998,6 +1998,23 @@ void Game::playerReceivePingBack(uint32_t playerId)
 	player->sendPingBack();
 }
 
+void Game::playerSetTyping(uint32_t playerId, uint8_t typing)
+{
+	Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+	SpectatorVec spectators;
+	map.getSpectators(spectators, player->getPosition());
+	for (Creature* spectator : spectators) {
+		if (Player* p = spectator->getPlayer()) {
+			p->sendPlayerTyping(player, typing);
+		}
+	}
+}
+
+
 void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);

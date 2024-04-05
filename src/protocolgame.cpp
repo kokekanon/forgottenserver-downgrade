@@ -555,6 +555,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0x32:
 			parseExtendedOpcode(msg);
 			break; // otclient extended opcode
+		case 0x38:
+			parsePlayerTyping(msg);
+			break; // player are typing or not
 		case 0x64:
 			parseAutoWalk(msg);
 			break;
@@ -949,6 +952,13 @@ bool ProtocolGame::canSee(int32_t x, int32_t y, int32_t z) const
 }
 
 // Parse methods
+
+void ProtocolGame::parsePlayerTyping(NetworkMessage& msg)
+{
+	uint8_t typing = msg.getByte();
+	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerSetTyping(playerID, typing); });
+}
+
 void ProtocolGame::parseChannelInvite(NetworkMessage& msg)
 {
 	auto name = msg.getString();
@@ -1370,6 +1380,19 @@ void ProtocolGame::sendOpenPrivateChannel(std::string_view receiver)
 	NetworkMessage msg;
 	msg.addByte(0xAD);
 	msg.addString(receiver);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendPlayerTyping(const Creature* creature, uint8_t typing)
+{
+	if (!canSee(creature)) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x38);
+	msg.add<uint32_t>(creature->getID());
+	msg.addByte(typing);
 	writeToOutputBuffer(msg);
 }
 
