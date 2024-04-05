@@ -770,6 +770,12 @@ public:
 		}
 	}
 	void sendPing();
+	void sendPingBack() const
+	{
+		if (client) {
+			client->sendPingBack();
+		}
+	}
 	void sendStats();
 	void sendSkills() const
 	{
