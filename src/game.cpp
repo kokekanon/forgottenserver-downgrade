@@ -1988,6 +1988,16 @@ void Game::playerCloseNpcChannel(uint32_t playerId)
 	}
 }
 
+void Game::playerReceivePingBack(uint32_t playerId)
+{
+	Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+	player->sendPingBack();
+}
+
 void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);

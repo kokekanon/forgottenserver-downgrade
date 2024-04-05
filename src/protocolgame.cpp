@@ -546,6 +546,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0x14:
 			g_dispatcher.addTask([thisPtr = getThis()]() { thisPtr->logout(true, false); });
 			break;
+		case 0x1D:
+			g_dispatcher.addTask([playerID = player->getID()]() { g_game.playerReceivePingBack(playerID); });
+			break;
 		case 0x1E:
 			g_dispatcher.addTask([playerID = player->getID()]() { g_game.playerReceivePing(playerID); });
 			break;
@@ -1868,6 +1871,13 @@ void ProtocolGame::sendCancelWalk()
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendPingBack()
+{
+	NetworkMessage msg;
+	msg.addByte(0x1E);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendSkills()
 {
 	NetworkMessage msg;
@@ -1878,7 +1888,12 @@ void ProtocolGame::sendSkills()
 void ProtocolGame::sendPing()
 {
 	NetworkMessage msg;
-	msg.addByte(0x1E);
+	if (player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
+		msg.addByte(0x1D);
+	} else {
+		// classic clients ping
+		msg.addByte(0x1E);
+	}
 	writeToOutputBuffer(msg);
 }
 
