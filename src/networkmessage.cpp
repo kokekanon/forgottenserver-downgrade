@@ -84,9 +84,11 @@ void NetworkMessage::addItemId(uint16_t itemId, const bool isOTCv8)
 {
 	const ItemType& it = Item::items[itemId];
 	uint16_t clientId = it.clientId;
+	 /*
 	if (isOTCv8 && itemId > 12660) {
 		clientId = it.stackable ? 3031 : 105;
 	}
+	*/
 
 	add<uint16_t>(clientId);
 }
@@ -113,4 +115,8 @@ void NetworkMessage::addItem(const Item* item, const bool isOTCv8)
 	} else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[item->getFluidType() & 7]);
 	}
+	if (isOTCv8) {
+		addString(item->getShader());
+	}
+
 }

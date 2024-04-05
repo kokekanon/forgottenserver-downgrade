@@ -375,8 +375,8 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 
 	// OTCv8 detect
 	const auto otcv8StrLen = msg.get<uint16_t>();
-	if (otcv8StrLen == OTCV8_LENGTH && msg.getString(OTCV8_LENGTH) == OTCV8_NAME) {
-		isOTCv8 = msg.get<uint16_t>() != 0;
+	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
+		isOTCv8 = true;
 	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {

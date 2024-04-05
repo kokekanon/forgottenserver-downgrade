@@ -775,6 +775,52 @@ int luaItemGetBoostPercent(lua_State* L)
 }
 } // namespace
 
+int luaItemHasShader(lua_State* L)
+{
+	// item:getShader()
+	const auto* item = getUserdata<const Item>(L, 1);
+	if (item) {
+		pushBoolean(L, item->hasShader());
+	} else {
+		lua_pushnil(L);
+	}
+
+	return 1;
+}
+
+int luaItemGetShader(lua_State* L)
+{
+	// item:getShader()
+	const auto* item = getUserdata<const Item>(L, 1);
+	if (item) {
+		pushString(L, item->getShader());
+	} else {
+		lua_pushnil(L);
+	}
+
+	return 1;
+}
+
+int luaItemSetShader(lua_State* L)
+{
+	// item:setShader(shaderName)
+	auto* item = getUserdata<Item>(L, 1);
+	if (!item) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	item->setShader(getString(L, 2));
+	g_game.refreshItem(item);
+
+	pushBoolean(L, true);
+	return 1;
+}
+
+
+
+// namespace
+
 void LuaScriptInterface::registerItem()
 {
 	// Item
@@ -833,4 +879,9 @@ void LuaScriptInterface::registerItem()
 
 	registerMethod("Item", "setBoostPercent", luaItemSetBoostPercent);
 	registerMethod("Item", "getBoostPercent", luaItemGetBoostPercent);
+
+	registerMethod("Item", "setShader", luaItemSetShader);
+	registerMethod("Item", "getShader", luaItemGetShader);
+	registerMethod("Item", "hasShader", luaItemHasShader);
+
 }
