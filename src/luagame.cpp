@@ -422,6 +422,21 @@ int luaGameCreateMonster(lua_State* L)
 		if (g_game.placeCreature(monster, position, extended, force, magicEffect)) {
 			pushUserdata<Monster>(L, monster);
 			setMetatable(L, -1, "Monster");
+
+			if (monster->rayosEffect() != 0) {
+				monster->attachEffectById(monster->rayosEffect());
+			}
+			if (monster->wignsEffect() != 0) {
+				monster->attachEffectById(monster->wignsEffect());
+			}
+			if (monster->auraEffect() != 0) {
+				monster->attachEffectById(monster->auraEffect());
+			}
+			if (monster->shaderEffect() != "") {
+				monster->setShader(monster->shaderEffect());
+				g_game.updateCreatureShader(monster);
+			}
+			
 		} else {
 			delete monster;
 			lua_pushnil(L);

@@ -76,6 +76,13 @@ public:
 	bool canSee(const Position& pos) const override;
 	bool canSeeInvisibility() const override { return isImmune(CONDITION_INVISIBLE); }
 	uint32_t getManaCost() const { return mType->info.manaCost; }
+	uint16_t auraEffect() const { return mType->info.auraEffect; }
+
+	std::string shaderEffect() const { return mType->info.shaderEffect; }
+
+	uint16_t wignsEffect() const { return mType->info.wignsEffect; }
+
+	uint16_t rayosEffect() const { return mType->info.rayosEffect; }
 	void setSpawn(Spawn* spawn) { this->spawn = spawn; }
 	bool canWalkOnFieldType(CombatType_t combatType) const;
 

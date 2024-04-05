@@ -331,6 +331,10 @@ public:
 	               int32_t maxTargetDist, bool fullPathSearch = true, bool clearSight = true,
 	               int32_t maxSearchDist = 0) const;
 
+	std::string getShader() const { return shader; }
+	void setShader(const std::string& shaderName) { shader = shaderName; }
+
+
 	void incrementReferenceCounter() { ++referenceCounter; }
 	void decrementReferenceCounter()
 	{
@@ -353,6 +357,11 @@ public:
 
 	const auto& getDamageMap() const { return damageMap; }
 
+	void attachEffectById(uint16_t id);
+	void detachEffectById(uint16_t id);
+	const std::vector<uint16_t> getAttachedEffectList() const { return attachedEffectList; }
+
+
 protected:
 	virtual bool useCacheMap() const { return false; }
 
@@ -371,6 +380,7 @@ protected:
 
 	using CountMap = std::map<uint32_t, CountBlock_t>;
 	CountMap damageMap;
+	std::string shader;
 
 	std::list<Creature*> summons;
 	CreatureEventList eventsList;
@@ -408,6 +418,8 @@ protected:
 
 	Direction direction = DIRECTION_SOUTH;
 	Skulls_t skull = SKULL_NONE;
+
+	std::vector<uint16_t> attachedEffectList;
 
 	bool localMapCache[mapWalkHeight][mapWalkWidth] = {{false}};
 	bool isInternalRemoved = false;

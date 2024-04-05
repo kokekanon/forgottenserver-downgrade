@@ -277,7 +277,7 @@ bool ConfigManager::load()
 	integers[ConfigKeysInteger::WHITE_SKULL_TIME] = getGlobalInteger(L, "whiteSkullTime", 15 * 60);
 	integers[ConfigKeysInteger::STAIRHOP_DELAY] = getGlobalInteger(L, "stairJumpExhaustion", 2000);
 	integers[ConfigKeysInteger::EXP_FROM_PLAYERS_LEVEL_RANGE] = getGlobalInteger(L, "expFromPlayersLevelRange", 75);
-	integers[ConfigKeysInteger::MAX_PACKETS_PER_SECOND] = getGlobalInteger(L, "maxPacketsPerSecond", 25);
+	integers[ConfigKeysInteger::MAX_PACKETS_PER_SECOND] = getGlobalInteger(L, "maxPacketsPerSecond", 50);
 	integers[ConfigKeysInteger::SERVER_SAVE_NOTIFY_DURATION] = getGlobalInteger(L, "serverSaveNotifyDuration", 5);
 	integers[ConfigKeysInteger::YELL_MINIMUM_LEVEL] = getGlobalInteger(L, "yellMinimumLevel", 2);
 	integers[ConfigKeysInteger::MINIMUM_LEVEL_TO_SEND_PRIVATE] = getGlobalInteger(L, "minimumLevelToSendPrivate", 1);

@@ -434,6 +434,9 @@ public:
 	void addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect);
 	static void addDistanceEffect(const SpectatorVec& spectators, const Position& fromPos, const Position& toPos,
 	                              uint8_t effect);
+	void sendAttachedEffect(const Creature* creature, uint16_t effectId);
+	void sendDetachEffect(const Creature* creature, uint16_t effectId);
+	void updateCreatureShader(const Creature* creature);
 
 	void setAccountStorageValue(const uint32_t accountId, const uint32_t key, const int32_t value);
 	int32_t getAccountStorageValue(const uint32_t accountId, const uint32_t key) const;
