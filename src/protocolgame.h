@@ -86,6 +86,7 @@ private:
 
 	// Parse methods
 	void parseAutoWalk(NetworkMessage& msg);
+	void parsePlayerTyping(NetworkMessage& msg);
 	void parseSetOutfit(NetworkMessage& msg);
 	void parseSay(NetworkMessage& msg);
 	void parseLookAt(NetworkMessage& msg);
@@ -192,6 +193,7 @@ private:
 	void sendAnimatedText(std::string_view message, const Position& pos, TextColor_t color);
 
 	void sendCreatureLight(const Creature* creature);
+	void sendPlayerTyping(const Creature* creature, uint8_t typing);
 
 	void sendCreatureSquare(const Creature* creature, SquareColor_t color);
 
