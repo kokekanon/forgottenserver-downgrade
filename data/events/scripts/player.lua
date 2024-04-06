@@ -137,6 +137,6 @@ function Player:onSpellCheck(spell)
 	return true
 end
 
-function Player:onToolstip(item)
-	if hasEvent.onToolstip then Event.onToolstip(self, item) end
+function Player:onToolsTips(item)
+	if hasEvent.onToolsTips then Event.onToolsTips(self, item) end
 end

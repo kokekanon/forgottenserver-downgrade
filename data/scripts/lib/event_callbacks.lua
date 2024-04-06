@@ -61,7 +61,7 @@ ec.onGainSkillTries = {[3] = 1}
 ec.onUpdateInventory = {}
 ec.onAccountManager = {}
 ec.onRotateItem = {}
-ec.onToolstip = {}
+ec.onToolsTips = {}
 -- Monster
 ec.onDropLoot = {}
 ec.onSpawn = {}

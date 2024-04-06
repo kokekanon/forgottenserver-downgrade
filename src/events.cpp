@@ -116,8 +116,8 @@ bool Events::load()
 				info.playerOnRotateItem = event;
 			} else if (methodName == "onSpellCheck") {
 				info.playerOnSpellCheck = event;
-			} else if (methodName == "onToolstip") {
-				info.playeronToolstip = event;
+			} else if (methodName == "onToolsTips") {
+				info.playerOnToolsTips = event;
 			} else {
 				std::cout << "[Warning - Events::load] Unknown player method: " << methodName << std::endl;
 			}
@@ -694,14 +694,10 @@ bool Events::eventPlayerOnLookInShop(Player* player, const ItemType* itemType, u
 	return scriptInterface.callFunction(3);
 }
 
-
-
-
-
-void Events::eventPlayeronToolstip(Player* player, uint16_t item)
+void Events::eventPlayeronToolsTips(Player* player, uint16_t item)
 {
-	// Player:onToolstip(itemType) or Player.onToolstip(self, itemType, count)
-	if (info.playeronToolstip == -1) {
+	// Player:onToolsTips(item) or Player.onToolsTips(self, item)
+	if (info.playerOnToolsTips == -1) {
 		return;
 	}
 
@@ -711,10 +707,10 @@ void Events::eventPlayeronToolstip(Player* player, uint16_t item)
 	}
 
 	ScriptEnvironment* env = scriptInterface.getScriptEnv();
-	env->setScriptId(info.playeronToolstip, &scriptInterface);
+	env->setScriptId(info.playerOnToolsTips, &scriptInterface);
 
 	lua_State* L = scriptInterface.getLuaState();
-	scriptInterface.pushFunction(info.playeronToolstip);
+	scriptInterface.pushFunction(info.playerOnToolsTips);
 
 	Lua::pushUserdata<Player>(L, player);
 	Lua::setMetatable(L, -1, "Player");
@@ -723,12 +719,6 @@ void Events::eventPlayeronToolstip(Player* player, uint16_t item)
 
 	scriptInterface.callVoidFunction(2);
 }
-
-
-
-
-
-
 
 ReturnValue Events::eventPlayerOnMoveItem(Player* player, Item* item, uint16_t count, const Position& fromPosition,
                                           const Position& toPosition, Cylinder* fromCylinder, Cylinder* toCylinder)

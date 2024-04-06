@@ -5,14 +5,7 @@ local init = {
 
 local event = Event()
 
-event.onToolstip = function(player,item)
-
-print(player:getName())
-
-player:sendJSON(ItemType(item):getName(), {
-	title = 1,
-	msg = 2
-})
+event.onToolsTips = function(player,item)
 
 player:sendJSON("new", {
     uid = ItemType(item):getId(),
