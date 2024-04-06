@@ -116,6 +116,8 @@ bool Events::load()
 				info.playerOnRotateItem = event;
 			} else if (methodName == "onSpellCheck") {
 				info.playerOnSpellCheck = event;
+			} else if (methodName == "onToolstip") {
+				info.playeronToolstip = event;
 			} else {
 				std::cout << "[Warning - Events::load] Unknown player method: " << methodName << std::endl;
 			}
@@ -691,6 +693,42 @@ bool Events::eventPlayerOnLookInShop(Player* player, const ItemType* itemType, u
 
 	return scriptInterface.callFunction(3);
 }
+
+
+
+
+
+void Events::eventPlayeronToolstip(Player* player, uint16_t item)
+{
+	// Player:onToolstip(itemType) or Player.onToolstip(self, itemType, count)
+	if (info.playeronToolstip == -1) {
+		return;
+	}
+
+	if (!scriptInterface.reserveScriptEnv()) {
+		std::cout << "[Error - Events::eventplayeronToolstip] Call stack overflow" << std::endl;
+		return;
+	}
+
+	ScriptEnvironment* env = scriptInterface.getScriptEnv();
+	env->setScriptId(info.playeronToolstip, &scriptInterface);
+
+	lua_State* L = scriptInterface.getLuaState();
+	scriptInterface.pushFunction(info.playeronToolstip);
+
+	Lua::pushUserdata<Player>(L, player);
+	Lua::setMetatable(L, -1, "Player");
+
+	lua_pushinteger(L, item);
+
+	scriptInterface.callVoidFunction(2);
+}
+
+
+
+
+
+
 
 ReturnValue Events::eventPlayerOnMoveItem(Player* player, Item* item, uint16_t count, const Position& fromPosition,
                                           const Position& toPosition, Cylinder* fromCylinder, Cylinder* toCylinder)

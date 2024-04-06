@@ -103,6 +103,10 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count, const bool isOTCv8)
 	} else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[count & 7]);
 	}
+	if (isOTCv8) {
+		addString(""); //--> shader
+	//	 addString(""); // fail tooltsips
+	}
 }
 
 void NetworkMessage::addItem(const Item* item, const bool isOTCv8)
@@ -116,7 +120,9 @@ void NetworkMessage::addItem(const Item* item, const bool isOTCv8)
 		addByte(fluidMap[item->getFluidType() & 7]);
 	}
 	if (isOTCv8) {
-		addString(item->getShader());
+		addString(item->getShader());  //Shader
+		//addString(item->getName());  // fail tooltsips
+
 	}
 
 }

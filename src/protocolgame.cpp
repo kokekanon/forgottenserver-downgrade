@@ -558,6 +558,9 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0x38:
 			parsePlayerTyping(msg);
 			break; // player are typing or not
+		case 0x39:
+			parsePlayerToolstip(msg);
+			break; // player are typing or not
 		case 0x64:
 			parseAutoWalk(msg);
 			break;
@@ -964,6 +967,12 @@ void ProtocolGame::parseChannelInvite(NetworkMessage& msg)
 	auto name = msg.getString();
 	g_dispatcher.addTask(
 	    [playerID = player->getID(), name = std::string{name}]() { g_game.playerChannelInvite(playerID, name); });
+}
+
+void ProtocolGame::parsePlayerToolstip(NetworkMessage& msg)
+{
+	uint16_t itemID = msg.get<uint16_t>();
+	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.sendPlayerToolstip(playerID, itemID); });
 }
 
 void ProtocolGame::parseChannelExclude(NetworkMessage& msg)

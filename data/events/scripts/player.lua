@@ -136,3 +136,7 @@ function Player:onSpellCheck(spell)
 	if hasEvent.onSpellCheck then return Event.onSpellCheck(self, spell) end
 	return true
 end
+
+function Player:onToolstip(item)
+	if hasEvent.onToolstip then Event.onToolstip(self, item) end
+end

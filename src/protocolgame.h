@@ -87,6 +87,7 @@ private:
 	// Parse methods
 	void parseAutoWalk(NetworkMessage& msg);
 	void parsePlayerTyping(NetworkMessage& msg);
+	void parsePlayerToolstip(NetworkMessage& msg);
 	void parseSetOutfit(NetworkMessage& msg);
 	void parseSay(NetworkMessage& msg);
 	void parseLookAt(NetworkMessage& msg);
