@@ -372,6 +372,23 @@ CREATE TABLE IF NOT EXISTS `tile_store` (
   FOREIGN KEY (`house_id`) REFERENCES `houses` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
+
+CREATE TABLE IF NOT EXISTS `shop_history` (
+  `id` int(11) NOT NULL,
+  `account` int(11) NOT NULL,
+  `player` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `cost` int(11) NOT NULL,
+  `details` varchar(500) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `shop_history`
+  ADD PRIMARY KEY (`id`);
+ALTER TABLE `shop_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  
+  
 CREATE TABLE IF NOT EXISTS `towns` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
