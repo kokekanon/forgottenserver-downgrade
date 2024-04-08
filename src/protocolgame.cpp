@@ -1363,7 +1363,7 @@ void ProtocolGame::parseEnableSharedPartyExperience(NetworkMessage& msg)
 
 void ProtocolGame::parseModalWindowAnswer(NetworkMessage& msg)
 {
-	if (isOTCv8) {
+	if (!isOTCv8) {
 		return;
 	}
 
@@ -2219,7 +2219,7 @@ void ProtocolGame::sendInventoryItem(slots_t slot, const Item* item)
 
 void ProtocolGame::sendModalWindow(const ModalWindow& modalWindow)
 {
-	if (isOTCv8) {
+	if (!isOTCv8) {
 		return;
 	}
 
