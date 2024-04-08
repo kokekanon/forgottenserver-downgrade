@@ -57,6 +57,7 @@ Example:
 !playerSetShader "Map - Heat"
 !detacheffect 11
 !attacheffect 11
+Player("Adamcole"):getItemById(2050, true):setShader("Outfit - Rainbow")
 ```
 attacheffect monster:
 ```

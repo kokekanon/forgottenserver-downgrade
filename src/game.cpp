@@ -5457,3 +5457,14 @@ if (const auto container = parent->getContainer()) {
 	}
 }
 
+void Game::sendPlayerToolsTips(uint32_t playerId, uint16_t itemID)
+{
+	Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+	const ItemType& itemType = Item::items.getItemIdByClientId(itemID);
+
+	 g_events->eventPlayeronToolsTips(player, itemType.id);
+
+}

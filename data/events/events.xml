@@ -39,7 +39,8 @@
 	<event class="Player" method="onAccountManager" enabled="1" />
 	<event class="Player" method="onRotateItem" enabled="1" />
 	<event class="Player" method="onSpellCheck" enabled="1" />
-
+	<event class="Player" method="onToolsTips" enabled="1" />
+	
 	<!-- Monster methods -->
 	<event class="Monster" method="onDropLoot" enabled="1" />
 	<event class="Monster" method="onSpawn" enabled="0" />
