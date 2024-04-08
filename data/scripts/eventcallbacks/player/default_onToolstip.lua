@@ -10,20 +10,8 @@ event.onToolsTips = function(player,item)
 player:sendJSON("new", {
     uid = ItemType(item):getId(),
     itemName = ItemType(item):getName(),
-    desc = "0",
-    clientId = ItemType(item):getId(),
-    itemLevel = 1,
-    imp = "0",
-    unidentified = "0",
-    mirrored = "0",
-    uLevel = 11,
-    uniqueName = "0",
-    rarityId = 1,
-    reqLvl = 111,
-    attr = "111",
-    stackable = true,
-    itemType = 3,
-    weight = 111,
+    desc = ItemType(item):getItemDescription(0),
+    clientId = ItemType(item):getClientId(),
 })
 end
 
