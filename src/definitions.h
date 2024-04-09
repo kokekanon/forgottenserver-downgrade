@@ -9,9 +9,9 @@ inline constexpr auto STATUS_SERVER_VERSION = "1.5+";
 inline constexpr auto STATUS_SERVER_DEVELOPERS = "Mark Samman";
 inline constexpr auto STATUS_SERVER_REPOSITORY = "https://github.com/MillhioreBT/forgottenserver-downgrade";
 
-inline constexpr auto CLIENT_VERSION_MIN = 860;
+inline constexpr auto CLIENT_VERSION_MIN = 800;
 inline constexpr auto CLIENT_VERSION_MAX = 860;
-inline constexpr auto CLIENT_VERSION_STR = "860";
+inline constexpr auto CLIENT_VERSION_STR = "800";
 
 inline constexpr unsigned int AUTHENTICATOR_DIGITS = 6;
 inline constexpr unsigned int AUTHENTICATOR_PERIOD = 30;

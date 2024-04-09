@@ -217,7 +217,7 @@ void mainLoader(ServiceManager* services)
 	services->add<ProtocolStatus>(static_cast<uint16_t>(g_config[ConfigKeysInteger::STATUS_PORT]));
 
 	// Legacy login protocol
-	services->add<ProtocolOld>(static_cast<uint16_t>(g_config[ConfigKeysInteger::LOGIN_PORT]));
+	//services->add<ProtocolOld>(static_cast<uint16_t>(g_config[ConfigKeysInteger::LOGIN_PORT]));
 
 	RentPeriod_t rentPeriod;
 	auto strRentPeriod =

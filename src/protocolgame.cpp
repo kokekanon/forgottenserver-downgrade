@@ -351,6 +351,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 
 	msg.skipBytes(1); // gamemaster flag
 
+/*
 	auto accountName = msg.getString();
 	auto characterName = msg.getString();
 	auto password = msg.getString();
@@ -360,19 +361,34 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 		accountName = ACCOUNT_MANAGER_ACCOUNT_NAME;
 		password = ACCOUNT_MANAGER_ACCOUNT_PASSWORD;
 	}
+	    */
 
-	if (accountName.empty()) {
-		disconnectClient("You must enter your account name.");
+		uint32_t accountNumber = msg.get<uint32_t>();
+	if (accountNumber == 0) {
+		disconnectClient("You must enter your account number.");
 		return;
 	}
 
-	uint32_t timeStamp = msg.get<uint32_t>();
+	std::string accountName = std::to_string(accountNumber);
+
+	if (accountName.empty()) {
+		disconnectClient("You must enter your account number.");
+		return;
+	}
+	std::string_view characterName = msg.getString();
+	const std::string_view& password = msg.getString();
+
+	std::string token = "";
+	uint32_t tokenTime = 0;
+
+	/*uint32_t timeStamp = msg.get<uint32_t>();
+
 	uint8_t randNumber = msg.getByte();
 	if (challengeTimestamp != timeStamp || challengeRandom != randNumber) {
 		disconnect();
 		return;
 	}
-
+	*/
 	// OTCv8 detect
 	const auto otcv8StrLen = msg.get<uint16_t>();
 	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
@@ -406,12 +422,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	auto [accountId, characterId] = IOLoginData::gameworldAuthentication(accountName, password, characterName);
-	if (accountManager && characterName == ACCOUNT_MANAGER_PLAYER_NAME) {
-		if (accountId == 0) {
-			std::tie(accountId, characterId) =
-			    IOLoginData::getAccountIdByAccountName(accountName, password, characterName);
-		}
-	}
+
 
 	if (accountId == 0) {
 		disconnectClient("Account name or password is not correct.");
@@ -422,7 +433,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 }
 
 void ProtocolGame::onConnect()
-{
+{/*
 	auto output = OutputMessagePool::getOutputMessage();
 	static std::random_device rd;
 	static std::ranlux24 generator(rd());
@@ -446,7 +457,7 @@ void ProtocolGame::onConnect()
 	output->skipBytes(-12);
 	output->add<uint32_t>(adlerChecksum(output->getOutputBuffer() + sizeof(uint32_t), 8));
 
-	send(output);
+	send(output);*/
 }
 
 void ProtocolGame::disconnectClient(std::string_view message) const
