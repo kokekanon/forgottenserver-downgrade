@@ -578,7 +578,7 @@ public:
 			client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
 		}
 	}
-	void sendPlayerTyping(const Creature* creature, uint8_t typing)
+	void sendPlayerTyping(const Creature* creature, bool typing)
 	{
 		if (client) {
 			client->sendPlayerTyping(creature, typing);

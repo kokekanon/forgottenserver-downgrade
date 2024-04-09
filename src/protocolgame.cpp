@@ -958,7 +958,7 @@ bool ProtocolGame::canSee(int32_t x, int32_t y, int32_t z) const
 
 void ProtocolGame::parsePlayerTyping(NetworkMessage& msg)
 {
-	uint8_t typing = msg.getByte();
+	bool typing = msg.getByte() == 1;
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerSetTyping(playerID, typing); });
 }
 
@@ -1392,7 +1392,7 @@ void ProtocolGame::sendOpenPrivateChannel(std::string_view receiver)
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendPlayerTyping(const Creature* creature, uint8_t typing)
+void ProtocolGame::sendPlayerTyping(const Creature* creature, bool typing)
 {
 	if (!canSee(creature)) {
 		return;

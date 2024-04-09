@@ -194,7 +194,7 @@ private:
 	void sendAnimatedText(std::string_view message, const Position& pos, TextColor_t color);
 
 	void sendCreatureLight(const Creature* creature);
-	void sendPlayerTyping(const Creature* creature, uint8_t typing);
+	void sendPlayerTyping(const Creature* creature, bool typing);
 
 	void sendCreatureSquare(const Creature* creature, SquareColor_t color);
 

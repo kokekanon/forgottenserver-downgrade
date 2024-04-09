@@ -1998,7 +1998,7 @@ void Game::playerReceivePingBack(uint32_t playerId)
 	player->sendPingBack();
 }
 
-void Game::playerSetTyping(uint32_t playerId, uint8_t typing)
+void Game::playerSetTyping(uint32_t playerId, bool typing)
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player) {
