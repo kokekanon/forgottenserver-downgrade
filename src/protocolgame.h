@@ -195,6 +195,7 @@ private:
 
 	void sendCreatureLight(const Creature* creature);
 	void sendPlayerTyping(const Creature* creature, bool typing);
+	void sendDash(const Creature* creature, bool enabled);
 
 	void sendCreatureSquare(const Creature* creature, SquareColor_t color);
 

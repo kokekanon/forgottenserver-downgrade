@@ -1405,6 +1405,20 @@ void ProtocolGame::sendPlayerTyping(const Creature* creature, bool typing)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendDash(const Creature* creature, bool enabled)
+{
+	if (!creature || !canSee(creature)) {
+		return;
+	}
+
+	// Send the data to the client to let it know that the creature is dashing or not
+	NetworkMessage msg;
+	msg.addByte(0x4C);
+	msg.add<uint32_t>(creature->getID());
+	msg.addByte(enabled ? 0x01 : 0x00);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit)
 {
 	if (!canSee(creature)) {

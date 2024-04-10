@@ -361,6 +361,7 @@ public:
 	void detachEffectById(uint16_t id);
 	const std::vector<uint16_t> getAttachedEffectList() const { return attachedEffectList; }
 
+	bool manageDash(bool enabled);
 
 protected:
 	virtual bool useCacheMap() const { return false; }
