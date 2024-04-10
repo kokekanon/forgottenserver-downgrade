@@ -1694,3 +1694,16 @@ void Creature::detachEffectById(uint16_t id)
 	attachedEffectList.erase(it);
 	g_game.sendDetachEffect(this, id);
 }
+
+bool Creature::manageDash(bool enabled)
+{
+	// Send the data about changing the dash stance to all players within range
+	SpectatorVec spectators;
+	g_game.map.getSpectators(spectators, position, false, true);
+	for (auto& creature : spectators) {
+		if (Player* player = creature->getPlayer()) {
+			player->sendDash(this, enabled);
+		}
+	}
+	return true;
+}
