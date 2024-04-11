@@ -69,7 +69,7 @@ attacheffect monster:
 
 > [!IMPORTANT]
 > Active features OTC
-
+```
         g_game.enableFeature(GameCreatureShader)
         g_game.enableFeature(GameCreatureAttachedEffect) 
         g_game.enableFeature(GameClientPing)
@@ -78,7 +78,7 @@ attacheffect monster:
 
 ```
 
-[//]: # (HTML table example feature)
+
 ### Example Feature
 
 <table style="border-collapse: collapse; width: 100%;" border="1">
@@ -182,4 +182,3 @@ g_game.enableFeature(GameSmoothWalkElevation)</td>
   </tbody>
 </table>
 
-[//]: # (HTML table example feature)
