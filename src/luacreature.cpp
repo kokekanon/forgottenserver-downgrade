@@ -49,7 +49,6 @@ int luaDoCreatureDash(lua_State* L)
 {
 	// creature:doCreatureDash(enabled)
 	// Lua function to activate/deactivate blur behind the creature
-	const std::string& name = getString(L, 2);
 	Creature* creature = getUserdata<Creature>(L, 1);
 	if (creature) {
 		pushBoolean(L, creature->manageDash(getBoolean(L, 2)));
