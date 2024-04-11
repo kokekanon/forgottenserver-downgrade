@@ -17,7 +17,9 @@ function Quest:register()
 end
 
 function Quest:isStarted(player)
-	return player:getStorageValue(self.storageId) >= self.storageValue
+	if player:getStorageValue(self.storageId) then
+		return player:getStorageValue(self.storageId) >= self.storageValue
+	end
 end
 
 function Quest:isCompleted(player)
