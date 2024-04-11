@@ -1394,7 +1394,7 @@ void ProtocolGame::sendOpenPrivateChannel(std::string_view receiver)
 
 void ProtocolGame::sendPlayerTyping(const Creature* creature, bool typing)
 {
-	if (!canSee(creature)) {
+	if (!canSee(creature) || !isOTCv8) {
 		return;
 	}
 
