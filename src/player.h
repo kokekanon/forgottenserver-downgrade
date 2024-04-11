@@ -1009,7 +1009,11 @@ public:
 	auto getFightMode() const { return fightMode; }
 
 	bool hasDebugAssertSent() const { return client ? client->debugAssertSent : false; }
+
 	bool isOTCv8() const { return client ? client->isOTCv8 : false; }
+	bool isMehah() const { return client ? client->isMehah : false; }
+	bool isOTC() const { return client ? (client->isOTCv8 || client->isMehah) : false; }
+
 
 	static uint32_t playerAutoID;
 	std::string getMapShader() const { return mapShader; }
