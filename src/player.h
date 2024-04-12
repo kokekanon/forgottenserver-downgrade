@@ -1014,7 +1014,6 @@ public:
 	bool isMehah() const { return client ? client->isMehah : false; }
 	bool isOTC() const { return client ? (client->isOTCv8 || client->isMehah) : false; }
 
-
 	static uint32_t playerAutoID;
 	std::string getMapShader() const { return mapShader; }
 	void setMapShader(const std::string& shaderName) { mapShader = shaderName; }

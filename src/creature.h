@@ -334,7 +334,6 @@ public:
 	std::string getShader() const { return shader; }
 	void setShader(const std::string& shaderName) { shader = shaderName; }
 
-
 	void incrementReferenceCounter() { ++referenceCounter; }
 	void decrementReferenceCounter()
 	{

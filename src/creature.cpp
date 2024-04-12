@@ -1677,7 +1677,6 @@ std::optional<int64_t> Creature::getStorageValue(uint32_t key) const
 	return std::make_optional(it->second);
 }
 
-
 void Creature::attachEffectById(uint16_t id)
 {
 	auto it = std::find(attachedEffectList.begin(), attachedEffectList.end(), id);

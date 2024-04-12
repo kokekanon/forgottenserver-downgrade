@@ -2749,12 +2749,8 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 	});
 }
 
-
-
-
 void ProtocolGame::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
-
 	if (isMehah) {
 		NetworkMessage playermsg;
 		playermsg.reset();
@@ -2776,36 +2772,32 @@ void ProtocolGame::sendDetachEffect(const Creature* creature, uint16_t effectId)
 {
 	if (!isMehah) return;
 
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x35);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.add<uint16_t>(effectId);
-		writeToOutputBuffer(playermsg);
-
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x35);
+	playermsg.add<uint32_t>(creature->getID());
+	playermsg.add<uint16_t>(effectId);
+	writeToOutputBuffer(playermsg);
 }
 void ProtocolGame::sendShader(const Creature* creature, const std::string& shaderName)
 {
 	if (!isMehah) return;
 
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x36);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.addString(shaderName);
-		writeToOutputBuffer(playermsg);
-
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x36);
+	playermsg.add<uint32_t>(creature->getID());
+	playermsg.addString(shaderName);
+	writeToOutputBuffer(playermsg);
 }
 
 void ProtocolGame::sendMapShader(const std::string& shaderName)
 {
 	if (!isMehah) return;
 
-
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x37);
-		playermsg.addString(shaderName);
-		writeToOutputBuffer(playermsg);
-
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x37);
+	playermsg.addString(shaderName);
+	writeToOutputBuffer(playermsg);
 }

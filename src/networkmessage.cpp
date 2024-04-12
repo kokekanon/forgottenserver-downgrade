@@ -84,11 +84,10 @@ void NetworkMessage::addItemId(uint16_t itemId, const bool isOTC, const bool isM
 {
 	const ItemType& it = Item::items[itemId];
 	uint16_t clientId = it.clientId;
-	
+
 	if (isOTCv8 && itemId > 12660) {
 		clientId = it.stackable ? 3031 : 105;
 	}
-
 
 	add<uint16_t>(clientId);
 }
@@ -105,7 +104,7 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count, const bool isOTC, const
 	}
 	if (isMehah) {
 		addString(""); //--> shader
-	//	 addString(""); // fail tooltsips
+	//	 addString(""); // g_game.enableFeature(GameItemTooltipV8); tooltsips
 	}
 }
 
@@ -120,9 +119,7 @@ void NetworkMessage::addItem(const Item* item, const bool isOTC, const bool isMe
 		addByte(fluidMap[item->getFluidType() & 7]);
 	}
 	if (isMehah) {
-		addString(item->getShader());  //Shader
-		//addString(item->getName());  // fail tooltsips
-
+		addString(item->getShader()); // Shader
+		// addString(item->getName());  // g_game.enableFeature(GameItemTooltipV8); tooltsips
 	}
-
 }

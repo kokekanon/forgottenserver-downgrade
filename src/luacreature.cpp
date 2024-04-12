@@ -44,7 +44,6 @@ int luaCreatureCreate(lua_State* L)
 	return 1;
 }
 
-
 int luaDoCreatureDash(lua_State* L)
 {
 	// creature:doCreatureDash(enabled)
@@ -57,7 +56,6 @@ int luaDoCreatureDash(lua_State* L)
 	}
 	return 1;
 }
-
 
 int luaCreatureGetEvents(lua_State* L)
 {
@@ -1087,7 +1085,6 @@ int luaCreatureSendCreatureSquare(lua_State* L)
 }
 } // namespace
 
-
 int luaCreatureAttachEffectById(lua_State* L)
 {
 	// creature:attachEffectById(effectId, [temporary])
@@ -1151,7 +1148,6 @@ int luaCreatureSetShader(lua_State* L)
 	pushBoolean(L, true);
 	return 1;
 }
-
 
 void LuaScriptInterface::registerCreature()
 {
@@ -1248,6 +1244,4 @@ void LuaScriptInterface::registerCreature()
 	registerMethod("Creature", "attachEffectById", luaCreatureAttachEffectById);
 	registerMethod("Creature", "detachEffectById", luaCreatureDetachEffectById);
 	registerMethod("Creature", "doCreatureDash", luaDoCreatureDash);
-
-	
 }

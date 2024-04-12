@@ -2014,7 +2014,6 @@ void Game::playerSetTyping(uint32_t playerId, bool typing)
 	}
 }
 
-
 void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);
@@ -5363,10 +5362,6 @@ bool Game::reload(ReloadTypes_t reloadType)
 	return true;
 }
 
-
-
-
-
 void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
 	SpectatorVec spectators;
@@ -5409,7 +5404,6 @@ void Game::updateCreatureShader(const Creature* creature)
 	}
 }
 
-
 void Game::refreshItem(const Item* item)
 {
 	if (!item || !item->getParent()) return;
@@ -5425,7 +5419,7 @@ void Game::refreshItem(const Item* item)
 		return;
 	}
 
-if (const auto container = parent->getContainer()) {
+	if (const auto container = parent->getContainer()) {
 		int32_t index = container->getThingIndex(item);
 		if (index > -1 && index <= std::numeric_limits<uint16_t>::max()) {
 			SpectatorVec spectators;
@@ -5462,6 +5456,5 @@ void Game::sendPlayerToolsTips(uint32_t playerId, uint16_t itemID)
 	}
 	const ItemType& itemType = Item::items.getItemIdByClientId(itemID);
 
-	 g_events->eventPlayeronToolsTips(player, itemType.id);
-
+	g_events->eventPlayeronToolsTips(player, itemType.id);
 }
