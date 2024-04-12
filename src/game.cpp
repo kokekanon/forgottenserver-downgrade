@@ -5373,9 +5373,8 @@ void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendAttachedEffect(creature, effectId);
-			}
+			spectatorPlayer->sendAttachedEffect(creature, effectId);
+
 		} else {
 			spectator->attachEffectById(effectId);
 		}
@@ -5388,9 +5387,8 @@ void Game::sendDetachEffect(const Creature* creature, uint16_t effectId)
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendDetachEffect(creature, effectId);
-			}
+			spectatorPlayer->sendDetachEffect(creature, effectId);
+
 		} else {
 			spectator->detachEffectById(effectId);
 		}
@@ -5403,9 +5401,8 @@ void Game::updateCreatureShader(const Creature* creature)
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendShader(creature, creature->getShader());
-			}
+			spectatorPlayer->sendShader(creature, creature->getShader());
+
 		} else {
 			spectator->setShader(creature->getShader());
 		}
