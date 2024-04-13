@@ -413,6 +413,7 @@ protected:
 	Outfit_t currentOutfit;
 	Outfit_t defaultOutfit;
 	uint16_t currentMount;
+	uint16_t currentWing;
 
 	Position lastPosition;
 	LightInfo internalLight;

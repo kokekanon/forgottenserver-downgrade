@@ -254,6 +254,21 @@ int luaGameGetMounts(lua_State* L)
 	return 1;
 }
 
+int luaGameGetWings(lua_State* L)
+{
+	// Game.getWings()
+	const auto& wings = g_game.wings.getWings();
+	lua_createtable(L, wings.size(), 0);
+
+	int index = 0;
+	for (const auto& wing : wings) {
+		pushWing(L, &wing);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
 int luaGameGetVocations(lua_State* L)
 {
 	// Game.getVocations()
@@ -436,7 +451,7 @@ int luaGameCreateMonster(lua_State* L)
 				monster->setShader(monster->shaderEffect());
 				g_game.updateCreatureShader(monster);
 			}
-			
+
 		} else {
 			delete monster;
 			lua_pushnil(L);
@@ -690,6 +705,7 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getHouses", luaGameGetHouses);
 	registerMethod("Game", "getOutfits", luaGameGetOutfits);
 	registerMethod("Game", "getMounts", luaGameGetMounts);
+	registerMethod("Game", "getWings", luaGameGetWings);
 
 	registerMethod("Game", "getGameState", luaGameGetGameState);
 	registerMethod("Game", "setGameState", luaGameSetGameState);

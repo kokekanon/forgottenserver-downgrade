@@ -115,6 +115,7 @@ struct Group;
 struct LootBlock;
 struct ModalWindow;
 struct Mount;
+struct Wing;
 struct Outfit;
 struct Position;
 
@@ -776,6 +777,7 @@ void pushPosition(lua_State* L, const Position& position, int32_t stackpos = 0);
 void pushOutfit(lua_State* L, const Outfit_t& outfit);
 void pushOutfit(lua_State* L, const Outfit* outfit);
 void pushMount(lua_State* L, const Mount* mount);
+void pushWing(lua_State* L, const Wing* wing);
 void pushLoot(lua_State* L, const std::vector<LootBlock>& lootList);
 void pushReflect(lua_State* L, const Reflect& reflect);
 

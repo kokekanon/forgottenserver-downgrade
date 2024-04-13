@@ -1070,6 +1070,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
 	newOutfit.lookMount = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookWing = isOTC ? msg.get<uint16_t>() : 0;
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
@@ -2384,6 +2385,11 @@ void ProtocolGame::sendOutfitWindow()
 		currentOutfit.lookMount = currentMount->clientId;
 	}
 
+	Wing* currentWing = g_game.wings.getWingByID(player->getCurrentWing());
+	if (currentWing) {
+		currentOutfit.lookWing = currentWing->id;
+	}
+
 	/*bool mounted;
 	if (player->wasMounted) {
 	    mounted = currentOutfit.lookMount != 0;
@@ -2431,6 +2437,19 @@ void ProtocolGame::sendOutfitWindow()
 		for (const Mount* mount : mounts) {
 			msg.add<uint16_t>(mount->clientId);
 			msg.addString(mount->name);
+		}
+		// wings
+		std::vector<const Wing*> wings;
+		for (const Wing& wing : g_game.wings.getWings()) {
+			if (player->hasWing(&wing)) {
+				wings.push_back(&wing);
+			}
+		}
+
+		msg.addByte(wings.size());
+		for (const Wing* wing : wings) {
+			msg.add<uint16_t>(wing->id);
+			msg.addString(wing->name);
 		}
 	}
 
@@ -2592,6 +2611,7 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 
 	if (isOTC) {
 		msg.add<uint16_t>(outfit.lookMount);
+		msg.add<uint16_t>(outfit.lookWing);
 	}
 }
 
@@ -2748,9 +2768,6 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 		g_game.parsePlayerExtendedOpcode(playerID, opcode, buffer);
 	});
 }
-
-
-
 
 void ProtocolGame::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {

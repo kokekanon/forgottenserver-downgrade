@@ -76,6 +76,7 @@ void Game::setGameState(GameState_t newState)
 			map.spawns.startup();
 
 			mounts.loadFromXml();
+			wings.loadFromXml();
 
 			raids.loadFromXml();
 			raids.startup();
@@ -2014,7 +2015,6 @@ void Game::playerSetTyping(uint32_t playerId, bool typing)
 	}
 }
 
-
 void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);
@@ -3426,6 +3426,7 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(outfit.lookType);
 	if (!playerOutfit) {
 		outfit.lookMount = 0;
+		// outfit.lookWing = 0;
 	}
 
 	if (outfit.lookMount != 0) {
@@ -3454,6 +3455,28 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 		}
 
 		player->wasMounted = false;
+	}
+
+	/// wings
+	if (outfit.lookWing != 0) {
+		Wing* wing = wings.getWingByID(outfit.lookWing);
+		if (!wing) {
+			return;
+		}
+
+		if (!player->hasWing(wing)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentWing());
+		player->setCurrentWing(wing->id);
+		player->attachEffectById(wing->id);
+	} else {
+		if (player->isWinged()) {
+			player->diswing();
+		}
+		player->detachEffectById(player->getCurrentWing());
+		player->wasWinged = false;
 	}
 
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
@@ -5363,10 +5386,6 @@ bool Game::reload(ReloadTypes_t reloadType)
 	return true;
 }
 
-
-
-
-
 void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
 	SpectatorVec spectators;
@@ -5412,7 +5431,6 @@ void Game::updateCreatureShader(const Creature* creature)
 	}
 }
 
-
 void Game::refreshItem(const Item* item)
 {
 	if (!item || !item->getParent()) return;
@@ -5428,7 +5446,7 @@ void Game::refreshItem(const Item* item)
 		return;
 	}
 
-if (const auto container = parent->getContainer()) {
+	if (const auto container = parent->getContainer()) {
 		int32_t index = container->getThingIndex(item);
 		if (index > -1 && index <= std::numeric_limits<uint16_t>::max()) {
 			SpectatorVec spectators;
@@ -5465,6 +5483,5 @@ void Game::sendPlayerToolsTips(uint32_t playerId, uint16_t itemID)
 	}
 	const ItemType& itemType = Item::items.getItemIdByClientId(itemID);
 
-	 g_events->eventPlayeronToolsTips(player, itemType.id);
-
+	g_events->eventPlayeronToolsTips(player, itemType.id);
 }

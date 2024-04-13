@@ -11,6 +11,7 @@
 #include "player.h"
 #include "spells.h"
 #include "vocation.h"
+#include "wings.h"
 
 extern Chat* g_chat;
 extern Game g_game;
@@ -1593,6 +1594,97 @@ int luaPlayerToggleMount(lua_State* L)
 	return 1;
 }
 
+// @ wings
+
+int luaPlayerAddWing(lua_State* L)
+{
+	// player:addWing(wingId or wingName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t wingId;
+	if (isInteger(L, 2)) {
+		wingId = getInteger<uint16_t>(L, 2);
+	} else {
+		Wing* wing = g_game.wings.getWingByName(getString(L, 2));
+		if (!wing) {
+			lua_pushnil(L);
+			return 1;
+		}
+		wingId = wing->id;
+	}
+
+	pushBoolean(L, player->tameWing(wingId));
+	return 1;
+}
+
+int luaPlayerRemoveWing(lua_State* L)
+{
+	// player:removeWing(wingId or wingName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t wingId;
+	if (isInteger(L, 2)) {
+		wingId = getInteger<uint16_t>(L, 2);
+	} else {
+		Wing* wing = g_game.wings.getWingByName(getString(L, 2));
+		if (!wing) {
+			lua_pushnil(L);
+			return 1;
+		}
+		wingId = wing->id;
+	}
+
+	pushBoolean(L, player->untameWing(wingId));
+	return 1;
+}
+
+int luaPlayerHasWing(lua_State* L)
+{
+	// player:hasWing(wingId or wingName)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Wing* wing = nullptr;
+	if (isInteger(L, 2)) {
+		wing = g_game.wings.getWingByID(getInteger<uint16_t>(L, 2));
+	} else {
+		wing = g_game.wings.getWingByName(getString(L, 2));
+	}
+
+	if (wing) {
+		pushBoolean(L, player->hasWing(wing));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerToggleWing(lua_State* L)
+{
+	// player:toggleWing(wing)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool wing = getBoolean(L, 2);
+	pushBoolean(L, player->toggleWing(wing));
+	return 1;
+}
+
+// @
 int luaPlayerGetPremiumEndsAt(lua_State* L)
 {
 	// player:getPremiumEndsAt()
@@ -2168,8 +2260,6 @@ int luaPlayerHasDebugAssertSent(lua_State* L)
 	return 1;
 }
 
-
-
 int luaPlayerGetMapShader(lua_State* L)
 {
 	// player:getMapShader()
@@ -2202,8 +2292,6 @@ int luaPlayerSetMapShader(lua_State* L)
 	pushBoolean(L, true);
 	return 1;
 }
-
-
 
 // OfflinePlayer
 int luaOfflinePlayerCreate(lua_State* L)
@@ -2370,6 +2458,13 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "hasMount", luaPlayerHasMount);
 	registerMethod("Player", "toggleMount", luaPlayerToggleMount);
 
+	// @ wings
+	registerMethod("Player", "addWing", luaPlayerAddWing);
+	registerMethod("Player", "removeWing", luaPlayerRemoveWing);
+	registerMethod("Player", "hasWing", luaPlayerHasWing);
+	registerMethod("Player", "toggleWing", luaPlayerToggleWing);
+	// @
+
 	registerMethod("Player", "getPremiumEndsAt", luaPlayerGetPremiumEndsAt);
 	registerMethod("Player", "setPremiumEndsAt", luaPlayerSetPremiumEndsAt);
 
@@ -2419,7 +2514,6 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "getMapShader", luaPlayerGetMapShader);
 	registerMethod("Player", "setMapShader", luaPlayerSetMapShader);
-
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

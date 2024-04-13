@@ -128,6 +128,17 @@ public:
 	bool hasMounts() const;
 	void dismount();
 
+	uint16_t getRandomWing() const;
+	uint16_t getCurrentWing() const;
+	void setCurrentWing(uint16_t wingId);
+	bool isWinged() const { return defaultOutfit.lookWing != 0; }
+	bool toggleWing(bool wing);
+	bool tameWing(uint16_t wingId);
+	bool untameWing(uint16_t wingId);
+	bool hasWing(const Wing* wing) const;
+	bool hasWings() const;
+	void diswing();
+
 	void sendFYIBox(std::string_view message)
 	{
 		if (client) {
@@ -1072,6 +1083,8 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t> outfits;
 	std::unordered_set<uint16_t> mounts;
+	std::unordered_set<uint16_t> wings;
+
 	GuildWarVector guildWarVector;
 
 	std::list<ShopInfo> shopItemList;
@@ -1103,6 +1116,8 @@ private:
 	int64_t skullTicks = 0;
 	int64_t lastWalkthroughAttempt = 0;
 	int64_t lastToggleMount = 0;
+	int64_t lastToggleWing = 0;
+
 	int64_t lastPing;
 	int64_t lastPong;
 	int64_t nextAction = 0;
@@ -1172,10 +1187,14 @@ private:
 	bool secureMode = false;
 	bool ghostMode = false;
 	bool wasMounted = false;
+	bool wasWinged = false;
+
 	bool pzLocked = false;
 	bool isConnecting = false;
 	bool addAttackSkillPoint = false;
 	bool randomizeMount = false;
+	bool randomizeWing = false;
+
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 
 	void updateItemsLight(bool internal = false);

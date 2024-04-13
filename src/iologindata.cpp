@@ -229,7 +229,7 @@ bool IOLoginData::loadPlayerById(Player* player, uint32_t id)
 	return loadPlayer(
 	    player,
 	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction` FROM `players` WHERE `id` = {:d}",
+	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `currentwing`, `randomizewing`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction` FROM `players` WHERE `id` = {:d}",
 	        id)));
 }
 
@@ -239,7 +239,7 @@ bool IOLoginData::loadPlayerByName(Player* player, std::string_view name)
 	return loadPlayer(
 	    player,
 	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction` FROM `players` WHERE `name` = {:s}",
+	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `currentmount`, `randomizemount`, `currentwing`, `randomizewing`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction` FROM `players` WHERE `name` = {:s}",
 	        db.escapeString(name))));
 }
 
@@ -361,9 +361,10 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	player->defaultOutfit.lookAddons = result->getNumber<uint16_t>("lookaddons");
 	player->currentOutfit = player->defaultOutfit;
 	player->currentMount = result->getNumber<uint16_t>("currentmount");
+	player->currentWing = result->getNumber<uint16_t>("currentwing");
 	player->direction = static_cast<Direction>(result->getNumber<uint16_t>("direction"));
 	player->randomizeMount = result->getNumber<uint8_t>("randomizemount") != 0;
-
+	player->randomizeWing = result->getNumber<uint8_t>("randomizewing") != 0;
 	if (g_game.getWorldType() != WORLD_TYPE_PVP_ENFORCED) {
 		const time_t skullSeconds = result->getNumber<time_t>("skulltime") - time(nullptr);
 		if (skullSeconds > 0) {
@@ -598,6 +599,19 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 		} while (result->next());
 	}
 
+	// load Wings
+	if ((result = db.storeQuery(
+	         fmt::format("SELECT `wing_id` FROM `player_wings` WHERE `player_id` = {:d}", player->getGUID())))) {
+		do {
+			player->tameWing(result->getNumber<uint16_t>("wing_id"));
+		} while (result->next());
+	}
+
+	uint16_t currentWing = player->getCurrentWing();
+	if (currentWing > 0) {
+		player->attachEffectById(currentWing);
+	}
+
 	player->updateBaseSpeed();
 	player->updateInventoryWeight();
 	player->updateItemsLight(true);
@@ -705,6 +719,8 @@ bool IOLoginData::savePlayer(Player* player)
 	query << "`lookaddons` = " << static_cast<uint32_t>(player->defaultOutfit.lookAddons) << ',';
 	query << "`currentmount` = " << static_cast<uint16_t>(player->currentMount) << ',';
 	query << "`randomizemount` = " << player->randomizeMount << ",";
+	query << "`currentwing` = " << static_cast<uint16_t>(player->currentWing) << ',';
+	query << "`randomizewing` = " << player->randomizeWing << ",";
 	query << "`maglevel` = " << player->magLevel << ',';
 	query << "`mana` = " << player->mana << ',';
 	query << "`manamax` = " << player->manaMax << ',';
@@ -920,6 +936,23 @@ bool IOLoginData::savePlayer(Player* player)
 	}
 
 	if (!mountQuery.execute()) {
+		return false;
+	}
+
+	// save wings
+	if (!db.executeQuery(fmt::format("DELETE FROM `player_wings` WHERE `player_id` = {:d}", player->getGUID()))) {
+		return false;
+	}
+
+	DBInsert wingQuery("INSERT INTO `player_wings` (`player_id`, `wing_id`) VALUES ");
+
+	for (const auto& it : player->wings) {
+		if (!wingQuery.addRow(fmt::format("{:d}, {:d}", player->getGUID(), it))) {
+			return false;
+		}
+	}
+
+	if (!wingQuery.execute()) {
 		return false;
 	}
 

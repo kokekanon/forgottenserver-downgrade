@@ -28,7 +28,10 @@ local reloadTypes = {
 
 	["mount"] = RELOAD_TYPE_MOUNTS,
 	["mounts"] = RELOAD_TYPE_MOUNTS,
-
+	
+	["wing"] = RELOAD_TYPE_WINGS,
+	["wings"] = RELOAD_TYPE_WINGS,
+	
 	["move"] = RELOAD_TYPE_MOVEMENTS,
 	["movement"] = RELOAD_TYPE_MOVEMENTS,
 	["movements"] = RELOAD_TYPE_MOVEMENTS,

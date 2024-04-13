@@ -11,6 +11,7 @@
 #include "item.h"
 #include "map.h"
 #include "mounts.h"
+#include "wings.h"
 #include "npc.h"
 #include "player.h"
 #include "position.h"
@@ -486,6 +487,7 @@ public:
 	Map map;
 	Raids raids;
 	Mounts mounts;
+	Wings wings;
 
 	std::forward_list<Item*> toDecayItems;
 
