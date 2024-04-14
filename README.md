@@ -75,6 +75,7 @@ attacheffect monster:
         g_game.enableFeature(GameClientPing)
         g_game.enableFeature(GamePlayerMounts);
         g_game.enableFeature(GameItemShader)
+        g_game.enableFeature(GameWingsAurasEffects)
 
 ```
 
