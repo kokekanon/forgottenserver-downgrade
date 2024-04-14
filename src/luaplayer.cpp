@@ -11,6 +11,9 @@
 #include "player.h"
 #include "spells.h"
 #include "vocation.h"
+#include "wings.h"
+#include "auras.h"
+#include "effects.h"
 
 extern Chat* g_chat;
 extern Game g_game;
@@ -1593,6 +1596,280 @@ int luaPlayerToggleMount(lua_State* L)
 	return 1;
 }
 
+// @ wings
+
+int luaPlayerAddWing(lua_State* L)
+{
+	// player:addWing(wingId or wingName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t wingId;
+	if (isInteger(L, 2)) {
+		wingId = getInteger<uint16_t>(L, 2);
+	} else {
+		Wing* wing = g_game.wings.getWingByName(getString(L, 2));
+		if (!wing) {
+			lua_pushnil(L);
+			return 1;
+		}
+		wingId = wing->id;
+	}
+
+	pushBoolean(L, player->tameWing(wingId));
+	return 1;
+}
+
+int luaPlayerRemoveWing(lua_State* L)
+{
+	// player:removeWing(wingId or wingName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t wingId;
+	if (isInteger(L, 2)) {
+		wingId = getInteger<uint16_t>(L, 2);
+	} else {
+		Wing* wing = g_game.wings.getWingByName(getString(L, 2));
+		if (!wing) {
+			lua_pushnil(L);
+			return 1;
+		}
+		wingId = wing->id;
+	}
+
+	pushBoolean(L, player->untameWing(wingId));
+	return 1;
+}
+
+int luaPlayerHasWing(lua_State* L)
+{
+	// player:hasWing(wingId or wingName)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Wing* wing = nullptr;
+	if (isInteger(L, 2)) {
+		wing = g_game.wings.getWingByID(getInteger<uint16_t>(L, 2));
+	} else {
+		wing = g_game.wings.getWingByName(getString(L, 2));
+	}
+
+	if (wing) {
+		pushBoolean(L, player->hasWing(wing));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerToggleWing(lua_State* L)
+{
+	// player:toggleWing(wing)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool wing = getBoolean(L, 2);
+	pushBoolean(L, player->toggleWing(wing));
+	return 1;
+}
+
+// @
+// @ auras
+
+int luaPlayerAddAura(lua_State* L)
+{
+	// player:addAura(auraId or auraName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t auraId;
+	if (isInteger(L, 2)) {
+		auraId = getInteger<uint16_t>(L, 2);
+	} else {
+		Aura* aura = g_game.auras.getAuraByName(getString(L, 2));
+		if (!aura) {
+			lua_pushnil(L);
+			return 1;
+		}
+		auraId = aura->id;
+	}
+
+	pushBoolean(L, player->tameAura(auraId));
+	return 1;
+}
+
+int luaPlayerRemoveAura(lua_State* L)
+{
+	// player:removeAura(auraId or auraName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t auraId;
+	if (isInteger(L, 2)) {
+		auraId = getInteger<uint16_t>(L, 2);
+	} else {
+		Aura* aura = g_game.auras.getAuraByName(getString(L, 2));
+		if (!aura) {
+			lua_pushnil(L);
+			return 1;
+		}
+		auraId = aura->id;
+	}
+
+	pushBoolean(L, player->untameAura(auraId));
+	return 1;
+}
+
+int luaPlayerHasAura(lua_State* L)
+{
+	// player:hasAura(auraId or auraName)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Aura* aura = nullptr;
+	if (isInteger(L, 2)) {
+		aura = g_game.auras.getAuraByID(getInteger<uint16_t>(L, 2));
+	} else {
+		aura = g_game.auras.getAuraByName(getString(L, 2));
+	}
+
+	if (aura) {
+		pushBoolean(L, player->hasAura(aura));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerToggleAura(lua_State* L)
+{
+	// player:toggleAura(aura)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool aura = getBoolean(L, 2);
+	pushBoolean(L, player->toggleAura(aura));
+	return 1;
+}
+
+// @
+// @ effects
+
+int luaPlayerAddEffect(lua_State* L)
+{
+	// player:addEffect(effectId or effectName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t effectId;
+	if (isInteger(L, 2)) {
+		effectId = getInteger<uint16_t>(L, 2);
+	} else {
+		Effect* effect = g_game.effects.getEffectByName(getString(L, 2));
+		if (!effect) {
+			lua_pushnil(L);
+			return 1;
+		}
+		effectId = effect->id;
+	}
+
+	pushBoolean(L, player->tameEffect(effectId));
+	return 1;
+}
+
+int luaPlayerRemoveEffect(lua_State* L)
+{
+	// player:removeEffect(effectId or effectName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t effectId;
+	if (isInteger(L, 2)) {
+		effectId = getInteger<uint16_t>(L, 2);
+	} else {
+		Effect* effect = g_game.effects.getEffectByName(getString(L, 2));
+		if (!effect) {
+			lua_pushnil(L);
+			return 1;
+		}
+		effectId = effect->id;
+	}
+
+	pushBoolean(L, player->untameEffect(effectId));
+	return 1;
+}
+
+int luaPlayerHasEffect(lua_State* L)
+{
+	// player:hasEffect(effectId or effectName)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Effect* effect = nullptr;
+	if (isInteger(L, 2)) {
+		effect = g_game.effects.getEffectByID(getInteger<uint16_t>(L, 2));
+	} else {
+		effect = g_game.effects.getEffectByName(getString(L, 2));
+	}
+
+	if (effect) {
+		pushBoolean(L, player->hasEffect(effect));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerToggleEffect(lua_State* L)
+{
+	// player:toggleEffect(effect)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool effect = getBoolean(L, 2);
+	pushBoolean(L, player->toggleEffect(effect));
+	return 1;
+}
+
+// @
+
 int luaPlayerGetPremiumEndsAt(lua_State* L)
 {
 	// player:getPremiumEndsAt()
@@ -2168,8 +2445,6 @@ int luaPlayerHasDebugAssertSent(lua_State* L)
 	return 1;
 }
 
-
-
 int luaPlayerGetMapShader(lua_State* L)
 {
 	// player:getMapShader()
@@ -2202,8 +2477,6 @@ int luaPlayerSetMapShader(lua_State* L)
 	pushBoolean(L, true);
 	return 1;
 }
-
-
 
 // OfflinePlayer
 int luaOfflinePlayerCreate(lua_State* L)
@@ -2370,6 +2643,25 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "hasMount", luaPlayerHasMount);
 	registerMethod("Player", "toggleMount", luaPlayerToggleMount);
 
+	// @ wings
+	registerMethod("Player", "addWing", luaPlayerAddWing);
+	registerMethod("Player", "removeWing", luaPlayerRemoveWing);
+	registerMethod("Player", "hasWing", luaPlayerHasWing);
+	registerMethod("Player", "toggleWing", luaPlayerToggleWing);
+	// @
+	// @ auras
+	registerMethod("Player", "addAura", luaPlayerAddAura);
+	registerMethod("Player", "removeAura", luaPlayerRemoveAura);
+	registerMethod("Player", "hasAura", luaPlayerHasAura);
+	registerMethod("Player", "toggleAura", luaPlayerToggleAura);
+	// @
+	// @ effects
+	registerMethod("Player", "addEffect", luaPlayerAddEffect);
+	registerMethod("Player", "removeEffect", luaPlayerRemoveEffect);
+	registerMethod("Player", "hasEffect", luaPlayerHasEffect);
+	registerMethod("Player", "toggleEffect", luaPlayerToggleEffect);
+	// @
+
 	registerMethod("Player", "getPremiumEndsAt", luaPlayerGetPremiumEndsAt);
 	registerMethod("Player", "setPremiumEndsAt", luaPlayerSetPremiumEndsAt);
 
@@ -2419,7 +2711,6 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "getMapShader", luaPlayerGetMapShader);
 	registerMethod("Player", "setMapShader", luaPlayerSetMapShader);
-
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);

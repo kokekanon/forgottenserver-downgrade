@@ -127,7 +127,42 @@ public:
 	bool hasMount(const Mount* mount) const;
 	bool hasMounts() const;
 	void dismount();
-
+	// -- @ wings
+	uint16_t getRandomWing() const;
+	uint16_t getCurrentWing() const;
+	void setCurrentWing(uint16_t wingId);
+	bool isWinged() const { return defaultOutfit.lookWing != 0; }
+	bool toggleWing(bool wing);
+	bool tameWing(uint16_t wingId);
+	bool untameWing(uint16_t wingId);
+	bool hasWing(const Wing* wing) const;
+	bool hasWings() const;
+	void diswing();
+	// -- @ 
+	// -- @ Auras
+	uint16_t getRandomAura() const;
+	uint16_t getCurrentAura() const;
+	void setCurrentAura(uint16_t auraId);
+	bool isAuraed() const { return defaultOutfit.lookAura != 0; }
+	bool toggleAura(bool aura);
+	bool tameAura(uint16_t auraId);
+	bool untameAura(uint16_t auraId);
+	bool hasAura(const Aura* aura) const;
+	bool hasAuras() const;
+	void disaura();
+	// -- @ 
+	// -- @ Effect
+	uint16_t getRandomEffect() const;
+	uint16_t getCurrentEffect() const;
+	void setCurrentEffect(uint16_t effectId);
+	bool isEffected() const { return defaultOutfit.lookEffect != 0; }
+	bool toggleEffect(bool effect);
+	bool tameEffect(uint16_t effectId);
+	bool untameEffect(uint16_t effectId);
+	bool hasEffect(const Effect* effect) const;
+	bool hasEffects() const;
+	void diseffect();
+	// -- @ 
 	void sendFYIBox(std::string_view message)
 	{
 		if (client) {
@@ -1071,6 +1106,10 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t> outfits;
 	std::unordered_set<uint16_t> mounts;
+	std::unordered_set<uint16_t> wings;
+	std::unordered_set<uint16_t> auras;
+	std::unordered_set<uint16_t> effects;
+
 	GuildWarVector guildWarVector;
 
 	std::list<ShopInfo> shopItemList;
@@ -1102,6 +1141,10 @@ private:
 	int64_t skullTicks = 0;
 	int64_t lastWalkthroughAttempt = 0;
 	int64_t lastToggleMount = 0;
+	int64_t lastToggleWing = 0;
+	int64_t lastToggleEffect = 0;
+	int64_t lastToggleAura = 0;
+
 	int64_t lastPing;
 	int64_t lastPong;
 	int64_t nextAction = 0;
@@ -1171,10 +1214,18 @@ private:
 	bool secureMode = false;
 	bool ghostMode = false;
 	bool wasMounted = false;
+	bool wasWinged = false;
+	bool wasAuraed = false;
+	bool wasEffected = false;
+
 	bool pzLocked = false;
 	bool isConnecting = false;
 	bool addAttackSkillPoint = false;
 	bool randomizeMount = false;
+	bool randomizeWing = false;
+	bool randomizeAura = false;
+	bool randomizeEffect = false;
+
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 
 	void updateItemsLight(bool internal = false);

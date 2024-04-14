@@ -76,6 +76,9 @@ void Game::setGameState(GameState_t newState)
 			map.spawns.startup();
 
 			mounts.loadFromXml();
+			wings.loadFromXml();
+			auras.loadFromXml();
+			effects.loadFromXml();
 
 			raids.loadFromXml();
 			raids.startup();
@@ -3425,6 +3428,9 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(outfit.lookType);
 	if (!playerOutfit) {
 		outfit.lookMount = 0;
+		// outfit.lookWing = 0;
+		// outfit.lookAura = 0;
+		// outfit.lookEffect = 0;
 	}
 
 	if (outfit.lookMount != 0) {
@@ -3455,6 +3461,73 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 		player->wasMounted = false;
 	}
 
+	// @  wings
+	if (outfit.lookWing != 0) {
+		Wing* wing = wings.getWingByID(outfit.lookWing);
+		if (!wing) {
+			return;
+		}
+
+		if (!player->hasWing(wing)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentWing());
+		player->setCurrentWing(wing->id);
+		player->attachEffectById(wing->id);
+	} else {
+		if (player->isWinged()) {
+			player->diswing();
+		}
+		player->detachEffectById(player->getCurrentWing());
+		player->wasWinged = false;
+	}
+	// @ 
+	// @  Effect
+	if (outfit.lookEffect != 0) {
+		Effect* effect = effects.getEffectByID(outfit.lookEffect);
+		if (!effect) {
+			return;
+		}
+
+		if (!player->hasEffect(effect)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentEffect());
+		player->setCurrentEffect(effect->id);
+		player->attachEffectById(effect->id);
+	} else {
+		if (player->isEffected()) {
+			player->diseffect();
+		}
+		player->detachEffectById(player->getCurrentEffect());
+		player->wasEffected = false;
+	}
+	// @ 
+	// @  Aura
+	if (outfit.lookAura != 0) {
+		Aura* aura = auras.getAuraByID(outfit.lookAura);
+		if (!aura) {
+			return;
+		}
+
+		if (!player->hasAura(aura)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentAura());
+		player->setCurrentAura(aura->id);
+		player->attachEffectById(aura->id);
+	} else {
+		if (player->isAuraed()) {
+			player->disaura();
+		}
+		player->detachEffectById(player->getCurrentAura());
+		player->wasAuraed = false;
+	}
+	// @ 
+	
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
 		player->defaultOutfit = outfit;
 

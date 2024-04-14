@@ -412,6 +412,9 @@ protected:
 	Outfit_t currentOutfit;
 	Outfit_t defaultOutfit;
 	uint16_t currentMount;
+	uint16_t currentWing;
+	uint16_t currentAura;
+	uint16_t currentEffect;
 
 	Position lastPosition;
 	LightInfo internalLight;
