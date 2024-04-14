@@ -12,6 +12,8 @@
 #include "map.h"
 #include "mounts.h"
 #include "wings.h"
+#include "auras.h"
+#include "effects.h"
 #include "npc.h"
 #include "player.h"
 #include "position.h"
@@ -488,7 +490,9 @@ public:
 	Raids raids;
 	Mounts mounts;
 	Wings wings;
-
+	Effects effects;
+	Auras auras;
+	
 	std::forward_list<Item*> toDecayItems;
 
 	std::unordered_set<Tile*> getTilesToClean() const { return tilesToClean; }

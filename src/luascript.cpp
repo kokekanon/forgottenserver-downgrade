@@ -1005,6 +1005,8 @@ void Lua::pushOutfit(lua_State* L, const Outfit_t& outfit)
 	setField(L, "lookTypeEx", outfit.lookTypeEx);
 	setField(L, "lookMount", outfit.lookMount);
 	setField(L, "lookWing", outfit.lookWing);
+	setField(L, "lookAura", outfit.lookAura);
+	setField(L, "lookEffect", outfit.lookEffect);
 	setField(L, "lookHead", outfit.lookHead);
 	setField(L, "lookBody", outfit.lookBody);
 	setField(L, "lookLegs", outfit.lookLegs);
@@ -1041,6 +1043,23 @@ void Lua::pushWing(lua_State* L, const Wing* wing)
 	setField(L, "id", wing->id);
 	setField(L, "premium", wing->premium);
 }
+void Lua::pushAura(lua_State* L, const Aura* aura)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", aura->name);
+	setField(L, "speed", aura->speed);
+	setField(L, "id", aura->id);
+	setField(L, "premium", aura->premium);
+}
+void Lua::pushEffect(lua_State* L, const Effect* effect)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", effect->name);
+	setField(L, "speed", effect->speed);
+	setField(L, "id", effect->id);
+	setField(L, "premium", effect->premium);
+}
+
 
 void Lua::pushLoot(lua_State* L, const std::vector<LootBlock>& lootList)
 {
@@ -1959,6 +1978,8 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RELOAD_TYPE_MONSTERS);
 	registerEnum(RELOAD_TYPE_MOUNTS);
 	registerEnum(RELOAD_TYPE_WINGS);
+	registerEnum(RELOAD_TYPE_AURAS);
+	registerEnum(RELOAD_TYPE_EFFECTS);
 	registerEnum(RELOAD_TYPE_MOVEMENTS);
 	registerEnum(RELOAD_TYPE_NPCS);
 	registerEnum(RELOAD_TYPE_QUESTS);

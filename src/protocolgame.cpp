@@ -1071,6 +1071,8 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookAddons = msg.getByte();
 	newOutfit.lookMount = isOTC ? msg.get<uint16_t>() : 0;
 	newOutfit.lookWing = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookAura = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookEffect = isOTC ? msg.get<uint16_t>() : 0;
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
@@ -2389,7 +2391,17 @@ void ProtocolGame::sendOutfitWindow()
 	if (currentWing) {
 		currentOutfit.lookWing = currentWing->id;
 	}
-
+	// @ -- auras
+	Aura* currentAura = g_game.auras.getAuraByID(player->getCurrentAura());
+	if (currentAura) {
+		currentOutfit.lookAura = currentAura->id;
+	}
+	// @ -- effects
+	Effect* currentEffect = g_game.effects.getEffectByID(player->getCurrentEffect());
+	if (currentEffect) {
+		currentOutfit.lookEffect = currentEffect->id;
+	}
+    
 	/*bool mounted;
 	if (player->wasMounted) {
 	    mounted = currentOutfit.lookMount != 0;
@@ -2451,6 +2463,36 @@ void ProtocolGame::sendOutfitWindow()
 			msg.add<uint16_t>(wing->id);
 			msg.addString(wing->name);
 		}
+
+				// auras
+		std::vector<const Aura*> auras;
+		for (const Aura& aura : g_game.auras.getAuras()) {
+			if (player->hasAura(&aura)) {
+				auras.push_back(&aura);
+			}
+		}
+
+		msg.addByte(auras.size());
+		for (const Aura* aura : auras) {
+			msg.add<uint16_t>(aura->id);
+			msg.addString(aura->name);
+		}
+
+		
+    		// effects
+		std::vector<const Effect*> effects;
+		for (const Effect& effect : g_game.effects.getEffects()) {
+			if (player->hasEffect(&effect)) {
+				effects.push_back(&effect);
+			}
+		}
+
+		msg.addByte(effects.size());
+		for (const Effect* effect : effects) {
+			msg.add<uint16_t>(effect->id);
+			msg.addString(effect->name);
+		}
+
 	}
 
 	writeToOutputBuffer(msg);
@@ -2612,6 +2654,8 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 	if (isOTC) {
 		msg.add<uint16_t>(outfit.lookMount);
 		msg.add<uint16_t>(outfit.lookWing);
+		msg.add<uint16_t>(outfit.lookAura);
+		msg.add<uint16_t>(outfit.lookEffect);
 	}
 }
 

@@ -269,6 +269,36 @@ int luaGameGetWings(lua_State* L)
 	return 1;
 }
 
+int luaGameGetAuras(lua_State* L)
+{
+	// Game.getAuras()
+	const auto& auras = g_game.auras.getAuras();
+	lua_createtable(L, auras.size(), 0);
+
+	int index = 0;
+	for (const auto& aura : auras) {
+		pushAura(L, &aura);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
+int luaGameGetEffects(lua_State* L)
+{
+	// Game.getEffects()
+	const auto& effects = g_game.effects.getEffects();
+	lua_createtable(L, effects.size(), 0);
+
+	int index = 0;
+	for (const auto& effect : effects) {
+		pushEffect(L, &effect);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
 int luaGameGetVocations(lua_State* L)
 {
 	// Game.getVocations()
@@ -706,6 +736,8 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getOutfits", luaGameGetOutfits);
 	registerMethod("Game", "getMounts", luaGameGetMounts);
 	registerMethod("Game", "getWings", luaGameGetWings);
+	registerMethod("Game", "getEffects", luaGameGetEffects);
+	registerMethod("Game", "getAuras", luaGameGetAuras);
 
 	registerMethod("Game", "getGameState", luaGameGetGameState);
 	registerMethod("Game", "setGameState", luaGameSetGameState);
