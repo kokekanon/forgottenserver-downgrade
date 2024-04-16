@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS `players` (
   `randomizeaura` tinyint NOT NULL DEFAULT '0',
   `currenteffect` smallint UNSIGNED NOT NULL DEFAULT '0',
   `randomizeeffect` tinyint NOT NULL DEFAULT '0',
+  `currentshader` smallint UNSIGNED NOT NULL DEFAULT '0',
+  `randomizeshader` tinyint NOT NULL DEFAULT '0';
   `direction` tinyint unsigned NOT NULL DEFAULT '2',
   `maglevel` int NOT NULL DEFAULT '0',
   `mana` int NOT NULL DEFAULT '0',
@@ -382,6 +384,13 @@ CREATE TABLE IF NOT EXISTS `player_auras` (
   `player_id` int NOT NULL DEFAULT '0',
   `aura_id` smallint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`player_id`,`aura_id`),
+  FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+
+CREATE TABLE IF NOT EXISTS `player_shaders` (
+  `player_id` int(11) NOT NULL DEFAULT 0,
+  `shader_id` smallint(5) UNSIGNED NOT NULL DEFAULT 0
+  PRIMARY KEY (`player_id`, `shader_id`),
   FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 

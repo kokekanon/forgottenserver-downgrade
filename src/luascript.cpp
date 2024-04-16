@@ -1007,6 +1007,7 @@ void Lua::pushOutfit(lua_State* L, const Outfit_t& outfit)
 	setField(L, "lookWing", outfit.lookWing);
 	setField(L, "lookAura", outfit.lookAura);
 	setField(L, "lookEffect", outfit.lookEffect);
+	setField(L, "lookShader", outfit.lookShader);
 	setField(L, "lookHead", outfit.lookHead);
 	setField(L, "lookBody", outfit.lookBody);
 	setField(L, "lookLegs", outfit.lookLegs);
@@ -1043,6 +1044,14 @@ void Lua::pushWing(lua_State* L, const Wing* wing)
 	setField(L, "id", wing->id);
 	setField(L, "premium", wing->premium);
 }
+void Lua::pushShader(lua_State* L, const Shader* shader)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", shader->name);
+	setField(L, "id", shader->id);
+	setField(L, "premium", shader->premium);
+}
+
 void Lua::pushAura(lua_State* L, const Aura* aura)
 {
 	lua_createtable(L, 0, 5);
@@ -1977,6 +1986,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RELOAD_TYPE_ITEMS);
 	registerEnum(RELOAD_TYPE_MONSTERS);
 	registerEnum(RELOAD_TYPE_MOUNTS);
+	registerEnum(RELOAD_TYPE_SHADERS);
 	registerEnum(RELOAD_TYPE_WINGS);
 	registerEnum(RELOAD_TYPE_AURAS);
 	registerEnum(RELOAD_TYPE_EFFECTS);

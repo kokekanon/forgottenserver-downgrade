@@ -79,6 +79,7 @@ void Game::setGameState(GameState_t newState)
 			wings.loadFromXml();
 			auras.loadFromXml();
 			effects.loadFromXml();
+			shaders.loadFromXml();
 
 			raids.loadFromXml();
 			raids.startup();
@@ -3526,7 +3527,29 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 		player->detachEffectById(player->getCurrentAura());
 		player->wasAuraed = false;
 	}
-	// @ 
+	// @
+	/// shaders
+	if (outfit.lookShader != 0) {
+		Shader* shader = shaders.getShaderByID(outfit.lookShader);
+		if (!shader) {
+			return;
+		}
+
+		if (!player->hasShader(shader)) {
+			return;
+		}
+
+		player->setCurrentShader(shader->id);
+		player->sendShader(player, shader->name);
+
+
+	} else {
+		if (player->isShadered()) {
+			player->disshader();
+		}
+		player->sendShader(player, "Outfit - Default");
+		player->wasShadered = false;
+	}
 	
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
 		player->defaultOutfit = outfit;

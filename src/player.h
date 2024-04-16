@@ -162,7 +162,20 @@ public:
 	bool hasEffect(const Effect* effect) const;
 	bool hasEffects() const;
 	void diseffect();
-	// -- @ 
+	// -- @
+	// -- @ Shader
+	uint16_t getRandomShader() const;
+	uint16_t getCurrentShader() const;
+	void setCurrentShader(uint16_t shaderId);
+	bool isShadered() const { return defaultOutfit.lookShader != 0; }
+	bool toggleShader(bool shader);
+	bool tameShader(uint16_t shaderId);
+	bool untameShader(uint16_t shaderId);
+	bool hasShader(const Shader* shader) const;
+	bool hasShaders() const;
+	void disshader();
+	std::string getCurrentShader_NAME() const;
+	// -- @
 	void sendFYIBox(std::string_view message)
 	{
 		if (client) {
@@ -1109,6 +1122,7 @@ private:
 	std::unordered_set<uint16_t> wings;
 	std::unordered_set<uint16_t> auras;
 	std::unordered_set<uint16_t> effects;
+	std::unordered_set<uint16_t> shaders;
 
 	GuildWarVector guildWarVector;
 
@@ -1144,6 +1158,7 @@ private:
 	int64_t lastToggleWing = 0;
 	int64_t lastToggleEffect = 0;
 	int64_t lastToggleAura = 0;
+	int64_t lastToggleShader = 0;
 
 	int64_t lastPing;
 	int64_t lastPong;
@@ -1217,6 +1232,7 @@ private:
 	bool wasWinged = false;
 	bool wasAuraed = false;
 	bool wasEffected = false;
+	bool wasShadered = false;
 
 	bool pzLocked = false;
 	bool isConnecting = false;
@@ -1225,6 +1241,7 @@ private:
 	bool randomizeWing = false;
 	bool randomizeAura = false;
 	bool randomizeEffect = false;
+	bool randomizeShader = false;
 
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 
