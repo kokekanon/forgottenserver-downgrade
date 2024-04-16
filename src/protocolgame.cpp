@@ -377,7 +377,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 
 	isOTC = isOTCv8 || isMehah;
 
-	if (isOTCv8) {
+	if (isOTC) {
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);

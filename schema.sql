@@ -142,6 +142,12 @@ CREATE TABLE IF NOT EXISTS `account_viplist` (
   FOREIGN KEY (`player_id`) REFERENCES `players` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
 
+CREATE TABLE IF NOT EXISTS `game_storage` (
+    `key` INTEGER UNSIGNED NOT NULL,
+    `value` TINYINT NOT NULL,
+    PRIMARY KEY (`key`)
+);
+
 CREATE TABLE IF NOT EXISTS `guilds` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
