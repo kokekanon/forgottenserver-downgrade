@@ -341,14 +341,6 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	enableXTEAEncryption();
 	setXTEAKey(std::move(key));
 
-	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		NetworkMessage opcodeMessage;
-		opcodeMessage.addByte(0x32);
-		opcodeMessage.addByte(0x00);
-		opcodeMessage.add<uint16_t>(0x00);
-		writeToOutputBuffer(opcodeMessage);
-	}
-
 	msg.skipBytes(1); // gamemaster flag
 
 	auto accountName = msg.getString();
@@ -384,6 +376,14 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	isOTC = isOTCv8 || isMehah;
+
+	if (isOTCv8) {
+		NetworkMessage opcodeMessage;
+		opcodeMessage.addByte(0x32);
+		opcodeMessage.addByte(0x00);
+		opcodeMessage.add<uint16_t>(0x00);
+		writeToOutputBuffer(opcodeMessage);
+	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		disconnectClient(fmt::format("Only clients with protocol {:s} allowed!", CLIENT_VERSION_STR));
@@ -2603,7 +2603,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxMana(), std::numeric_limits<uint16_t>::max())));
 
 	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max())));
-	msg.addByte(player->getMagicLevelPercent() / 100);
+	msg.addByte(static_cast<uint8_t>(player->getMagicLevelPercent()));
 
 	msg.addByte(player->getSoul());
 
@@ -2628,7 +2628,7 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		msg.addByte(
 		    std::min<uint8_t>(static_cast<uint8_t>(player->getSkillLevel(i)), std::numeric_limits<uint8_t>::max()));
-		msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i) / 100));
+		msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i)));
 	}
 }
 

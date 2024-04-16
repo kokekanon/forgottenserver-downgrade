@@ -85,6 +85,7 @@ void Game::setGameState(GameState_t newState)
 
 			loadMotdNum();
 			loadPlayersRecord();
+			loadGameStorageValues();
 			loadAccountStorageValues();
 
 			g_globalEvents->startup();
@@ -140,6 +141,10 @@ void Game::saveGameState()
 	}
 
 	std::cout << "Saving server..." << std::endl;
+
+	if (!saveGameStorageValues()) {
+		std::cout << "[Error - Game::saveGameState] Failed to save game storage values." << std::endl;
+	}
 
 	if (!saveAccountStorageValues()) {
 		std::cout << "[Error - Game::saveGameState] Failed to save account-level storage values." << std::endl;
@@ -5530,4 +5535,61 @@ void Game::sendPlayerToolsTips(uint32_t playerId, uint16_t itemID)
 	const ItemType& itemType = Item::items.getItemIdByClientId(itemID);
 
 	g_events->eventPlayeronToolsTips(player, itemType.id);
+}
+void Game::loadGameStorageValues()
+{
+	Database& db = Database::getInstance();
+
+	DBResult_ptr result;
+	if ((result = db.storeQuery("SELECT `key`, `value` FROM `game_storage`"))) {
+		do {
+			g_game.setStorageValue(result->getNumber<uint32_t>("key"), result->getNumber<int32_t>("value"));
+		} while (result->next());
+	}
+}
+
+bool Game::saveGameStorageValues() const
+{
+	DBTransaction transaction;
+	Database& db = Database::getInstance();
+
+	if (!transaction.begin()) {
+		return false;
+	}
+
+	if (!db.executeQuery("DELETE FROM `game_storage`")) {
+		return false;
+	}
+
+	for (const auto& [key, value] : g_game.storageMap) {
+		DBInsert gameStorageQuery("INSERT INTO `game_storage` (`key`, `value`) VALUES");
+		if (!gameStorageQuery.addRow(fmt::format("{:d}, {:d}", key, value))) {
+			return false;
+		}
+
+		if (!gameStorageQuery.execute()) {
+			return false;
+		}
+	}
+
+	return transaction.commit();
+}
+
+void Game::setStorageValue(uint32_t key, std::optional<int64_t> value)
+{
+	auto oldValue = getStorageValue(key);
+	if (value) {
+		storageMap.insert_or_assign(key, value.value());
+	} else {
+		storageMap.erase(key);
+	}
+}
+
+std::optional<int64_t> Game::getStorageValue(uint32_t key) const
+{
+	auto it = storageMap.find(key);
+	if (it == storageMap.end()) {
+		return std::nullopt;
+	}
+	return std::make_optional(it->second);
 }

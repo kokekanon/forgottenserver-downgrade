@@ -2444,7 +2444,6 @@ int luaPlayerHasDebugAssertSent(lua_State* L)
 	pushBoolean(L, player->hasDebugAssertSent());
 	return 1;
 }
-
 int luaPlayerGetMapShader(lua_State* L)
 {
 	// player:getMapShader()
@@ -2475,6 +2474,72 @@ int luaPlayerSetMapShader(lua_State* L)
 	player->sendMapShader(shaderName);
 
 	pushBoolean(L, true);
+	return 1;
+}
+
+int luaPlayerGetExperienceRate(lua_State* L)
+{
+	// player:getExperienceRate(type)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	auto type = getInteger<uint8_t>(L, 2);
+	if (type < 0 || type > static_cast<uint8_t>(ExperienceRateType::STAMINA)) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushinteger(L, player->getExperienceRate(static_cast<ExperienceRateType>(type)));
+	return 1;
+}
+
+int luaPlayerSetExperienceRate(lua_State* L)
+{
+	// player:setExperienceRate(type, rate)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	auto type = getInteger<uint8_t>(L, 2);
+	if (type < 0 || type > static_cast<uint8_t>(ExperienceRateType::STAMINA)) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	auto rate = getInteger<int16_t>(L, 3);
+	player->setExperienceRate(static_cast<ExperienceRateType>(type), rate);
+	pushBoolean(L, true);
+	return 1;
+}
+
+int luaPlayerIsUsingOtcV8(lua_State* L)
+{
+	// player:isUsingOtcV8()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	pushBoolean(L, player->isOTCv8());
+	return 1;
+}
+
+int luaPlayerGetLastIp(lua_State* L)
+{
+	// player:getLastIp()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushinteger(L, player->getLastIP());
 	return 1;
 }
 
@@ -2711,6 +2776,11 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "getMapShader", luaPlayerGetMapShader);
 	registerMethod("Player", "setMapShader", luaPlayerSetMapShader);
+	registerMethod("Player", "getExperienceRate", luaPlayerGetExperienceRate);
+	registerMethod("Player", "setExperienceRate", luaPlayerSetExperienceRate);
+
+	registerMethod("Player", "isUsingOtcV8", luaPlayerIsUsingOtcV8);
+	registerMethod("Player", "getLastIp", luaPlayerGetLastIp);
 
 	// OfflinePlayer
 	registerClass("OfflinePlayer", "Player", luaOfflinePlayerCreate);
