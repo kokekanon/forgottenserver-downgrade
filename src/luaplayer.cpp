@@ -14,6 +14,7 @@
 #include "wings.h"
 #include "auras.h"
 #include "effects.h"
+#include "shaders.h"
 
 extern Chat* g_chat;
 extern Game g_game;
@@ -1869,6 +1870,93 @@ int luaPlayerToggleEffect(lua_State* L)
 }
 
 // @
+int luaPlayerAddShader(lua_State* L)
+{
+	// player:addShader(shaderId or shaderName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t shaderId;
+	if (isInteger(L, 2)) {
+		shaderId = getInteger<uint16_t>(L, 2);
+	} else {
+		Shader* shader = g_game.shaders.getShaderByName(getString(L, 2));
+		if (!shader) {
+			lua_pushnil(L);
+			return 1;
+		}
+		shaderId = shader->id;
+	}
+
+	pushBoolean(L, player->tameShader(shaderId));
+	return 1;
+}
+
+int luaPlayerRemoveShader(lua_State* L)
+{
+	// player:removeShader(shaderId or shaderName)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint16_t shaderId;
+	if (isInteger(L, 2)) {
+		shaderId = getInteger<uint16_t>(L, 2);
+	} else {
+		Shader* shader = g_game.shaders.getShaderByName(getString(L, 2));
+		if (!shader) {
+			lua_pushnil(L);
+			return 1;
+		}
+		shaderId = shader->id;
+	}
+
+	pushBoolean(L, player->untameShader(shaderId));
+	return 1;
+}
+
+int luaPlayerHasShader(lua_State* L)
+{
+	// player:hasShader(shaderId or shaderName)
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	Shader* shader = nullptr;
+	if (isInteger(L, 2)) {
+		shader = g_game.shaders.getShaderByID(getInteger<uint16_t>(L, 2));
+	} else {
+		shader = g_game.shaders.getShaderByName(getString(L, 2));
+	}
+
+	if (shader) {
+		pushBoolean(L, player->hasShader(shader));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerToggleShader(lua_State* L)
+{
+	// player:toggleShader(shader)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	bool shader = getBoolean(L, 2);
+	pushBoolean(L, player->toggleShader(shader));
+	return 1;
+}
 
 int luaPlayerGetPremiumEndsAt(lua_State* L)
 {
@@ -2661,6 +2749,10 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "hasEffect", luaPlayerHasEffect);
 	registerMethod("Player", "toggleEffect", luaPlayerToggleEffect);
 	// @
+	registerMethod("Player", "addShader", luaPlayerAddShader);
+	registerMethod("Player", "removeShader", luaPlayerRemoveShader);
+	registerMethod("Player", "hasShader", luaPlayerHasShader);
+	registerMethod("Player", "toggleShader", luaPlayerToggleShader);
 
 	registerMethod("Player", "getPremiumEndsAt", luaPlayerGetPremiumEndsAt);
 	registerMethod("Player", "setPremiumEndsAt", luaPlayerSetPremiumEndsAt);

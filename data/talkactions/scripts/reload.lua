@@ -38,6 +38,9 @@ local reloadTypes = {
 	["aura"] = RELOAD_TYPE_AURA,
 	["auras"] = RELOAD_TYPE_AURA,
 
+	["shader"] = RELOAD_TYPE_SHADERS,
+	["shaders"] = RELOAD_TYPE_SHADERS,
+	
 	["move"] = RELOAD_TYPE_MOVEMENTS,
 	["movement"] = RELOAD_TYPE_MOVEMENTS,
 	["movements"] = RELOAD_TYPE_MOVEMENTS,

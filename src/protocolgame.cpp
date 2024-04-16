@@ -1073,6 +1073,13 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookWing = isOTC ? msg.get<uint16_t>() : 0;
 	newOutfit.lookAura = isOTC ? msg.get<uint16_t>() : 0;
 	newOutfit.lookEffect = isOTC ? msg.get<uint16_t>() : 0;
+
+	std::string_view shaderName = isOTC ? msg.getString() : "";
+	Shader* shader = nullptr;
+	if (!shaderName.empty()) {
+		shader = g_game.shaders.getShaderByName(shaderName);
+		newOutfit.lookShader = shader ? shader->id : 0;
+	}
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
@@ -2401,7 +2408,10 @@ void ProtocolGame::sendOutfitWindow()
 	if (currentEffect) {
 		currentOutfit.lookEffect = currentEffect->id;
 	}
-    
+	Shader* currentShader = g_game.shaders.getShaderByID(player->getCurrentShader());
+	if (currentShader) {
+		currentOutfit.lookShader = currentShader->id;
+	}
 	/*bool mounted;
 	if (player->wasMounted) {
 	    mounted = currentOutfit.lookMount != 0;
@@ -2464,7 +2474,7 @@ void ProtocolGame::sendOutfitWindow()
 			msg.addString(wing->name);
 		}
 
-				// auras
+		// auras
 		std::vector<const Aura*> auras;
 		for (const Aura& aura : g_game.auras.getAuras()) {
 			if (player->hasAura(&aura)) {
@@ -2478,8 +2488,7 @@ void ProtocolGame::sendOutfitWindow()
 			msg.addString(aura->name);
 		}
 
-		
-    		// effects
+		// effects
 		std::vector<const Effect*> effects;
 		for (const Effect& effect : g_game.effects.getEffects()) {
 			if (player->hasEffect(&effect)) {
@@ -2492,7 +2501,19 @@ void ProtocolGame::sendOutfitWindow()
 			msg.add<uint16_t>(effect->id);
 			msg.addString(effect->name);
 		}
+		// shader
+		std::vector<const Shader*> shaders;
+		for (const Shader& shader : g_game.shaders.getShaders()) {
+			if (player->hasShader(&shader)) {
+				shaders.push_back(&shader);
+			}
+		}
 
+		msg.addByte(shaders.size());
+		for (const Shader* shader : shaders) {
+			msg.add<uint16_t>(shader->id);
+			msg.addString(shader->name);
+		}
 	}
 
 	writeToOutputBuffer(msg);
@@ -2656,6 +2677,9 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 		msg.add<uint16_t>(outfit.lookWing);
 		msg.add<uint16_t>(outfit.lookAura);
 		msg.add<uint16_t>(outfit.lookEffect);
+
+		Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
+		msg.addString(shader ? shader->name : "");
 	}
 }
 
