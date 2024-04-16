@@ -119,6 +119,7 @@ struct Wing;
 struct Aura;
 struct Effect;
 struct Outfit;
+struct Shader;
 struct Position;
 
 using Combat_ptr = std::shared_ptr<Combat>;
@@ -784,6 +785,7 @@ void pushMount(lua_State* L, const Mount* mount);
 void pushWing(lua_State* L, const Wing* wing);
 void pushAura(lua_State* L, const Aura* aura);
 void pushEffect(lua_State* L, const Effect* effect);
+void pushShader(lua_State* L, const Shader* shader);
 void pushLoot(lua_State* L, const std::vector<LootBlock>& lootList);
 void pushReflect(lua_State* L, const Reflect& reflect);
 

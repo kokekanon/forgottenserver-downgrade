@@ -268,6 +268,21 @@ int luaGameGetWings(lua_State* L)
 
 	return 1;
 }
+// shaders
+int luaGameGetShaders(lua_State* L)
+{
+	// Game.getShaders()
+	const auto& shaders = g_game.shaders.getShaders();
+	lua_createtable(L, shaders.size(), 0);
+
+	int index = 0;
+	for (const auto& shader : shaders) {
+		pushShader(L, &shader);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
 
 int luaGameGetAuras(lua_State* L)
 {
@@ -794,6 +809,7 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getWings", luaGameGetWings);
 	registerMethod("Game", "getEffects", luaGameGetEffects);
 	registerMethod("Game", "getAuras", luaGameGetAuras);
+	registerMethod("Game", "getShaders", luaGameGetShaders);
 
 	registerMethod("Game", "getGameState", luaGameGetGameState);
 	registerMethod("Game", "setGameState", luaGameSetGameState);

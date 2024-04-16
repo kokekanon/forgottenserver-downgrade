@@ -4602,6 +4602,170 @@ bool Player::hasEffects() const
 }
 
 void Player::diseffect() { defaultOutfit.lookEffect = 0; }
+
+uint16_t Player::getRandomShader() const
+{
+	std::vector<uint16_t> shadersId;
+	for (const Shader& shader : g_game.shaders.getShaders()) {
+		if (hasShader(&shader)) {
+			shadersId.push_back(shader.id);
+		}
+	}
+
+	return shadersId[uniform_random(0, shadersId.size() - 1)];
+}
+
+
+uint16_t Player::getCurrentShader() const { return currentShader; }
+
+
+void Player::setCurrentShader(uint16_t shaderId) { currentShader = shaderId; }
+
+bool Player::toggleShader(bool shader)
+{
+	if ((OTSYS_TIME() - lastToggleShader) < 3000 && !wasShadered) {
+		sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
+		return false;
+	}
+
+	if (shader) {
+		if (isShadered()) {
+			return false;
+		}
+
+		if (!group->access && tile->hasFlag(TILESTATE_PROTECTIONZONE)) {
+			sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
+			return false;
+		}
+
+		const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(defaultOutfit.lookType);
+		if (!playerOutfit) {
+			return false;
+		}
+
+		uint16_t currentShaderId = getCurrentShader();
+		if (currentShaderId == 0) {
+			sendOutfitWindow();
+			return false;
+		}
+
+		Shader* currentShader = g_game.shaders.getShaderByID(currentShaderId);
+		if (!currentShader) {
+			return false;
+		}
+
+		if (!hasShader(currentShader)) {
+			setCurrentShader(0);
+			sendOutfitWindow();
+			return false;
+		}
+
+		if (currentShader->premium && !isPremium()) {
+			sendCancelMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT);
+			return false;
+		}
+
+		if (hasCondition(CONDITION_OUTFIT)) {
+			sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+			return false;
+		}
+
+		defaultOutfit.lookShader = currentShader->id;
+
+	} else {
+		if (!isShadered()) {
+			return false;
+		}
+
+		disshader();
+	}
+
+	g_game.internalCreatureChangeOutfit(this, defaultOutfit);
+	lastToggleShader = OTSYS_TIME();
+	return true;
+}
+
+bool Player::tameShader(uint16_t shaderId)
+{
+	if (!g_game.shaders.getShaderByID(shaderId)) {
+		return false;
+	}
+
+	Shader* shader = g_game.shaders.getShaderByID(shaderId);
+	if (hasShader(shader)) {
+		return false;
+	}
+
+	shaders.insert(shaderId);
+	return true;
+}
+
+bool Player::untameShader(uint16_t shaderId)
+{
+	if (!g_game.shaders.getShaderByID(shaderId)) {
+		return false;
+	}
+
+	Shader* shader = g_game.shaders.getShaderByID(shaderId);
+	if (!hasShader(shader)) {
+		return false;
+	}
+
+	shaders.erase(shaderId);
+
+	if (getCurrentShader() == shaderId) {
+		if (isShadered()) {
+			disshader();
+			g_game.internalCreatureChangeOutfit(this, defaultOutfit);
+		}
+
+		setCurrentShader(0);
+	}
+
+	return true;
+}
+
+bool Player::hasShader(const Shader* shader) const
+{
+	if (isAccessPlayer()) {
+		return true;
+	}
+
+	if (shader->premium && !isPremium()) {
+		return false;
+	}
+
+	return shaders.find(shader->id) != shaders.end();
+}
+
+bool Player::hasShaders() const
+{
+	for (const Shader& shader : g_game.shaders.getShaders()) {
+		if (hasShader(&shader)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void Player::disshader() { defaultOutfit.lookShader = 0; }
+
+std::string Player::getCurrentShader_NAME() const
+{
+
+	uint16_t currentShaderId = getCurrentShader();
+
+	Shader* currentShader = g_game.shaders.getShaderByID(static_cast<uint8_t>(currentShaderId));
+
+	if (currentShader != nullptr) {
+
+		return currentShader->name;
+	} else {
+
+		return "Outfit - Default"; 
+	}
+}
+
 /*bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)
 {
     if (tries == 0 || skill == SKILL_LEVEL) {

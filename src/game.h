@@ -14,6 +14,7 @@
 #include "wings.h"
 #include "auras.h"
 #include "effects.h"
+#include "shaders.h"
 #include "npc.h"
 #include "player.h"
 #include "position.h"
@@ -490,8 +491,10 @@ public:
 	Raids raids;
 	Mounts mounts;
 	Wings wings;
-	Effects effects;
 	Auras auras;
+	Effects effects;
+	Shaders shaders;
+
 	
 	std::forward_list<Item*> toDecayItems;
 

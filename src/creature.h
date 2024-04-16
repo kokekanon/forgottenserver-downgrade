@@ -415,6 +415,7 @@ protected:
 	uint16_t currentWing;
 	uint16_t currentAura;
 	uint16_t currentEffect;
+	uint16_t currentShader;
 
 	Position lastPosition;
 	LightInfo internalLight;
