@@ -76,12 +76,17 @@ void Game::setGameState(GameState_t newState)
 			map.spawns.startup();
 
 			mounts.loadFromXml();
+			wings.loadFromXml();
+			auras.loadFromXml();
+			effects.loadFromXml();
+			shaders.loadFromXml();
 
 			raids.loadFromXml();
 			raids.startup();
 
 			loadMotdNum();
 			loadPlayersRecord();
+			loadGameStorageValues();
 			loadAccountStorageValues();
 
 			g_globalEvents->startup();
@@ -137,6 +142,10 @@ void Game::saveGameState()
 	}
 
 	std::cout << "Saving server..." << std::endl;
+
+	if (!saveGameStorageValues()) {
+		std::cout << "[Error - Game::saveGameState] Failed to save game storage values." << std::endl;
+	}
 
 	if (!saveAccountStorageValues()) {
 		std::cout << "[Error - Game::saveGameState] Failed to save account-level storage values." << std::endl;
@@ -2014,7 +2023,6 @@ void Game::playerSetTyping(uint32_t playerId, bool typing)
 	}
 }
 
-
 void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);
@@ -3426,6 +3434,9 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 	const Outfit* playerOutfit = Outfits::getInstance().getOutfitByLookType(outfit.lookType);
 	if (!playerOutfit) {
 		outfit.lookMount = 0;
+		// outfit.lookWing = 0;
+		// outfit.lookAura = 0;
+		// outfit.lookEffect = 0;
 	}
 
 	if (outfit.lookMount != 0) {
@@ -3456,6 +3467,95 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool randomize
 		player->wasMounted = false;
 	}
 
+	// @  wings
+	if (outfit.lookWing != 0) {
+		Wing* wing = wings.getWingByID(outfit.lookWing);
+		if (!wing) {
+			return;
+		}
+
+		if (!player->hasWing(wing)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentWing());
+		player->setCurrentWing(wing->id);
+		player->attachEffectById(wing->id);
+	} else {
+		if (player->isWinged()) {
+			player->diswing();
+		}
+		player->detachEffectById(player->getCurrentWing());
+		player->wasWinged = false;
+	}
+	// @ 
+	// @  Effect
+	if (outfit.lookEffect != 0) {
+		Effect* effect = effects.getEffectByID(outfit.lookEffect);
+		if (!effect) {
+			return;
+		}
+
+		if (!player->hasEffect(effect)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentEffect());
+		player->setCurrentEffect(effect->id);
+		player->attachEffectById(effect->id);
+	} else {
+		if (player->isEffected()) {
+			player->diseffect();
+		}
+		player->detachEffectById(player->getCurrentEffect());
+		player->wasEffected = false;
+	}
+	// @ 
+	// @  Aura
+	if (outfit.lookAura != 0) {
+		Aura* aura = auras.getAuraByID(outfit.lookAura);
+		if (!aura) {
+			return;
+		}
+
+		if (!player->hasAura(aura)) {
+			return;
+		}
+
+		player->detachEffectById(player->getCurrentAura());
+		player->setCurrentAura(aura->id);
+		player->attachEffectById(aura->id);
+	} else {
+		if (player->isAuraed()) {
+			player->disaura();
+		}
+		player->detachEffectById(player->getCurrentAura());
+		player->wasAuraed = false;
+	}
+	// @
+	/// shaders
+	if (outfit.lookShader != 0) {
+		Shader* shader = shaders.getShaderByID(outfit.lookShader);
+		if (!shader) {
+			return;
+		}
+
+		if (!player->hasShader(shader)) {
+			return;
+		}
+
+		player->setCurrentShader(shader->id);
+		player->sendShader(player, shader->name);
+
+
+	} else {
+		if (player->isShadered()) {
+			player->disshader();
+		}
+		player->sendShader(player, "Outfit - Default");
+		player->wasShadered = false;
+	}
+	
 	if (player->canWear(outfit.lookType, outfit.lookAddons)) {
 		player->defaultOutfit = outfit;
 
@@ -5363,19 +5463,14 @@ bool Game::reload(ReloadTypes_t reloadType)
 	return true;
 }
 
-
-
-
-
 void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
 	SpectatorVec spectators;
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendAttachedEffect(creature, effectId);
-			}
+			spectatorPlayer->sendAttachedEffect(creature, effectId);
+
 		} else {
 			spectator->attachEffectById(effectId);
 		}
@@ -5388,9 +5483,8 @@ void Game::sendDetachEffect(const Creature* creature, uint16_t effectId)
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendDetachEffect(creature, effectId);
-			}
+			spectatorPlayer->sendDetachEffect(creature, effectId);
+
 		} else {
 			spectator->detachEffectById(effectId);
 		}
@@ -5403,15 +5497,13 @@ void Game::updateCreatureShader(const Creature* creature)
 	map.getSpectators(spectators, creature->getPosition(), false, true, 8, 8, 6, 6);
 	for (Creature* spectator : spectators) {
 		if (Player* spectatorPlayer = spectator->getPlayer()) {
-			if (spectatorPlayer->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-				spectatorPlayer->sendShader(creature, creature->getShader());
-			}
+			spectatorPlayer->sendShader(creature, creature->getShader());
+
 		} else {
 			spectator->setShader(creature->getShader());
 		}
 	}
 }
-
 
 void Game::refreshItem(const Item* item)
 {
@@ -5428,7 +5520,7 @@ void Game::refreshItem(const Item* item)
 		return;
 	}
 
-if (const auto container = parent->getContainer()) {
+	if (const auto container = parent->getContainer()) {
 		int32_t index = container->getThingIndex(item);
 		if (index > -1 && index <= std::numeric_limits<uint16_t>::max()) {
 			SpectatorVec spectators;
@@ -5465,6 +5557,62 @@ void Game::sendPlayerToolsTips(uint32_t playerId, uint16_t itemID)
 	}
 	const ItemType& itemType = Item::items.getItemIdByClientId(itemID);
 
-	 g_events->eventPlayeronToolsTips(player, itemType.id);
+	g_events->eventPlayeronToolsTips(player, itemType.id);
+}
+void Game::loadGameStorageValues()
+{
+	Database& db = Database::getInstance();
 
+	DBResult_ptr result;
+	if ((result = db.storeQuery("SELECT `key`, `value` FROM `game_storage`"))) {
+		do {
+			g_game.setStorageValue(result->getNumber<uint32_t>("key"), result->getNumber<int32_t>("value"));
+		} while (result->next());
+	}
+}
+
+bool Game::saveGameStorageValues() const
+{
+	DBTransaction transaction;
+	Database& db = Database::getInstance();
+
+	if (!transaction.begin()) {
+		return false;
+	}
+
+	if (!db.executeQuery("DELETE FROM `game_storage`")) {
+		return false;
+	}
+
+	for (const auto& [key, value] : g_game.storageMap) {
+		DBInsert gameStorageQuery("INSERT INTO `game_storage` (`key`, `value`) VALUES");
+		if (!gameStorageQuery.addRow(fmt::format("{:d}, {:d}", key, value))) {
+			return false;
+		}
+
+		if (!gameStorageQuery.execute()) {
+			return false;
+		}
+	}
+
+	return transaction.commit();
+}
+
+void Game::setStorageValue(uint32_t key, std::optional<int64_t> value)
+{
+	auto oldValue = getStorageValue(key);
+	if (value) {
+		storageMap.insert_or_assign(key, value.value());
+	} else {
+		storageMap.erase(key);
+	}
+}
+
+std::optional<int64_t> Game::getStorageValue(uint32_t key) const
+{
+	auto it = storageMap.find(key);
+	if (it == storageMap.end()) {
+		return std::nullopt;
+	}
+	return std::make_optional(it->second);
 }

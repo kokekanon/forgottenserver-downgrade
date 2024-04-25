@@ -127,7 +127,55 @@ public:
 	bool hasMount(const Mount* mount) const;
 	bool hasMounts() const;
 	void dismount();
-
+	// -- @ wings
+	uint16_t getRandomWing() const;
+	uint16_t getCurrentWing() const;
+	void setCurrentWing(uint16_t wingId);
+	bool isWinged() const { return defaultOutfit.lookWing != 0; }
+	bool toggleWing(bool wing);
+	bool tameWing(uint16_t wingId);
+	bool untameWing(uint16_t wingId);
+	bool hasWing(const Wing* wing) const;
+	bool hasWings() const;
+	void diswing();
+	// -- @ 
+	// -- @ Auras
+	uint16_t getRandomAura() const;
+	uint16_t getCurrentAura() const;
+	void setCurrentAura(uint16_t auraId);
+	bool isAuraed() const { return defaultOutfit.lookAura != 0; }
+	bool toggleAura(bool aura);
+	bool tameAura(uint16_t auraId);
+	bool untameAura(uint16_t auraId);
+	bool hasAura(const Aura* aura) const;
+	bool hasAuras() const;
+	void disaura();
+	// -- @ 
+	// -- @ Effect
+	uint16_t getRandomEffect() const;
+	uint16_t getCurrentEffect() const;
+	void setCurrentEffect(uint16_t effectId);
+	bool isEffected() const { return defaultOutfit.lookEffect != 0; }
+	bool toggleEffect(bool effect);
+	bool tameEffect(uint16_t effectId);
+	bool untameEffect(uint16_t effectId);
+	bool hasEffect(const Effect* effect) const;
+	bool hasEffects() const;
+	void diseffect();
+	// -- @
+	// -- @ Shader
+	uint16_t getRandomShader() const;
+	uint16_t getCurrentShader() const;
+	void setCurrentShader(uint16_t shaderId);
+	bool isShadered() const { return defaultOutfit.lookShader != 0; }
+	bool toggleShader(bool shader);
+	bool tameShader(uint16_t shaderId);
+	bool untameShader(uint16_t shaderId);
+	bool hasShader(const Shader* shader) const;
+	bool hasShaders() const;
+	void disshader();
+	std::string getCurrentShader_NAME() const;
+	// -- @
 	void sendFYIBox(std::string_view message)
 	{
 		if (client) {
@@ -222,6 +270,7 @@ public:
 		}
 	}
 	uint32_t getIP() const;
+	uint32_t getLastIP() const { return lastIP; }
 
 	void addContainer(uint8_t cid, Container* container);
 	void closeContainer(uint8_t cid);
@@ -258,6 +307,7 @@ public:
 	{
 		return std::max<int32_t>(0, specialMagicLevelSkill[combatTypeToIndex(type)]);
 	}
+	int32_t getExperienceRate(ExperienceRateType type) const { return experienceRate[static_cast<size_t>(type)]; }
 	uint32_t getBaseMagicLevel() const { return magLevel; }
 	uint16_t getMagicLevelPercent() const { return magLevelPercent; }
 	uint8_t getSoul() const { return soul; }
@@ -329,6 +379,9 @@ public:
 	{
 		specialMagicLevelSkill[combatTypeToIndex(type)] += modifier;
 	}
+
+	void setExperienceRate(ExperienceRateType type, int32_t rate) { experienceRate[static_cast<size_t>(type)] = rate; }
+	void addExperienceRate(ExperienceRateType type, int32_t rate) { experienceRate[static_cast<size_t>(type)] += rate; }
 
 	void setVarStats(stats_t stat, int32_t modifier);
 	int32_t getDefaultStats(stats_t stat) const;
@@ -935,7 +988,12 @@ public:
 			client->writeToOutputBuffer(message);
 		}
 	}
-
+	void sendDash(const Creature* creature, bool enabled)
+	{
+		if (client) {
+			client->sendDash(creature, enabled);
+		}
+	}
 	void receivePing() { lastPong = OTSYS_TIME(); }
 
 	void onThink(uint32_t interval) override;
@@ -1004,7 +1062,10 @@ public:
 	auto getFightMode() const { return fightMode; }
 
 	bool hasDebugAssertSent() const { return client ? client->debugAssertSent : false; }
+
 	bool isOTCv8() const { return client ? client->isOTCv8 : false; }
+	bool isMehah() const { return client ? client->isMehah : false; }
+	bool isOTC() const { return client ? (client->isOTCv8 || client->isMehah) : false; }
 
 	static uint32_t playerAutoID;
 	std::string getMapShader() const { return mapShader; }
@@ -1063,6 +1124,11 @@ private:
 
 	std::unordered_map<uint16_t, uint8_t> outfits;
 	std::unordered_set<uint16_t> mounts;
+	std::unordered_set<uint16_t> wings;
+	std::unordered_set<uint16_t> auras;
+	std::unordered_set<uint16_t> effects;
+	std::unordered_set<uint16_t> shaders;
+
 	GuildWarVector guildWarVector;
 
 	std::list<ShopInfo> shopItemList;
@@ -1094,6 +1160,11 @@ private:
 	int64_t skullTicks = 0;
 	int64_t lastWalkthroughAttempt = 0;
 	int64_t lastToggleMount = 0;
+	int64_t lastToggleWing = 0;
+	int64_t lastToggleEffect = 0;
+	int64_t lastToggleAura = 0;
+	int64_t lastToggleShader = 0;
+
 	int64_t lastPing;
 	int64_t lastPong;
 	int64_t nextAction = 0;
@@ -1136,6 +1207,7 @@ private:
 	int32_t varSkills[SKILL_LAST + 1] = {};
 	int32_t varStats[STAT_LAST + 1] = {};
 	std::array<int16_t, COMBAT_COUNT> specialMagicLevelSkill = {0};
+	std::array<int32_t, static_cast<size_t>(ExperienceRateType::STAMINA) + 1> experienceRate = {0};
 	int32_t purchaseCallback = -1;
 	int32_t saleCallback = -1;
 	int32_t MessageBufferCount = 0;
@@ -1163,10 +1235,20 @@ private:
 	bool secureMode = false;
 	bool ghostMode = false;
 	bool wasMounted = false;
+	bool wasWinged = false;
+	bool wasAuraed = false;
+	bool wasEffected = false;
+	bool wasShadered = false;
+
 	bool pzLocked = false;
 	bool isConnecting = false;
 	bool addAttackSkillPoint = false;
 	bool randomizeMount = false;
+	bool randomizeWing = false;
+	bool randomizeAura = false;
+	bool randomizeEffect = false;
+	bool randomizeShader = false;
+
 	bool inventoryAbilities[CONST_SLOT_LAST + 1] = {};
 
 	void updateItemsLight(bool internal = false);

@@ -115,7 +115,11 @@ struct Group;
 struct LootBlock;
 struct ModalWindow;
 struct Mount;
+struct Wing;
+struct Aura;
+struct Effect;
 struct Outfit;
+struct Shader;
 struct Position;
 
 using Combat_ptr = std::shared_ptr<Combat>;
@@ -315,6 +319,7 @@ public:
 	static int luaErrorHandler(lua_State* L);
 	bool callFunction(int params);
 	void callVoidFunction(int params);
+	ReturnValue callReturnValueFunction(int params);
 
 	static std::string escapeString(std::string string);
 
@@ -718,6 +723,7 @@ inline bool getAssociatedValue(lua_State* L, int32_t arg, int32_t index)
 }
 
 // Is
+bool isNone(lua_State* L, int32_t arg);
 bool isNumber(lua_State* L, int32_t arg);
 bool isInteger(lua_State* L, int32_t arg);
 bool isString(lua_State* L, int32_t arg);
@@ -776,6 +782,10 @@ void pushPosition(lua_State* L, const Position& position, int32_t stackpos = 0);
 void pushOutfit(lua_State* L, const Outfit_t& outfit);
 void pushOutfit(lua_State* L, const Outfit* outfit);
 void pushMount(lua_State* L, const Mount* mount);
+void pushWing(lua_State* L, const Wing* wing);
+void pushAura(lua_State* L, const Aura* aura);
+void pushEffect(lua_State* L, const Effect* effect);
+void pushShader(lua_State* L, const Shader* shader);
 void pushLoot(lua_State* L, const std::vector<LootBlock>& lootList);
 void pushReflect(lua_State* L, const Reflect& reflect);
 

@@ -341,14 +341,6 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	enableXTEAEncryption();
 	setXTEAKey(std::move(key));
 
-	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		NetworkMessage opcodeMessage;
-		opcodeMessage.addByte(0x32);
-		opcodeMessage.addByte(0x00);
-		opcodeMessage.add<uint16_t>(0x00);
-		writeToOutputBuffer(opcodeMessage);
-	}
-
 	msg.skipBytes(1); // gamemaster flag
 
 /*
@@ -391,8 +383,22 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	*/
 	// OTCv8 detect
 	const auto otcv8StrLen = msg.get<uint16_t>();
-	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		isOTCv8 = true;
+	if (otcv8StrLen == OTCV8_LENGTH && msg.getString(OTCV8_LENGTH) == OTCV8_NAME) {
+		isOTCv8 = msg.get<uint16_t>() != 0;
+	}
+	// mehah detect jajaja
+	if (operatingSystem == CLIENTOS_OTCLIENT_WINDOWS) {
+		isMehah = true;
+	}
+
+	isOTC = isOTCv8 || isMehah;
+
+	if (isOTC) {
+		NetworkMessage opcodeMessage;
+		opcodeMessage.addByte(0x32);
+		opcodeMessage.addByte(0x00);
+		opcodeMessage.add<uint16_t>(0x00);
+		writeToOutputBuffer(opcodeMessage);
 	}
 
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
@@ -781,7 +787,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 {
 	int32_t count = 0;
 	if (const auto ground = tile->getGround()) {
-		msg.addItem(ground, isOTCv8);
+		msg.addItem(ground, isOTC, isMehah, isOTCv8);
 		++count;
 	}
 
@@ -790,7 +796,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 	const TileItemVector* items = tile->getItemList();
 	if (items) {
 		for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
-			msg.addItem(*it, isOTCv8);
+			msg.addItem(*it, isOTC, isMehah, isOTCv8);
 
 			if (!isOTCv8) {
 				if (++count == 9 && isStacked) {
@@ -828,7 +834,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, NetworkMessage& msg)
 
 	if (items && count < MAX_STACKPOS_THINGS) {
 		for (auto it = items->getBeginDownItem(), end = items->getEndDownItem(); it != end; ++it) {
-			msg.addItem(*it, isOTCv8);
+			msg.addItem(*it, isOTC, isMehah, isOTCv8);
 
 			if (++count == MAX_STACKPOS_THINGS) {
 				return;
@@ -1074,7 +1080,17 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookLegs = msg.getByte();
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
-	newOutfit.lookMount = isOTCv8 ? msg.get<uint16_t>() : 0;
+	newOutfit.lookMount = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookWing = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookAura = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookEffect = isOTC ? msg.get<uint16_t>() : 0;
+
+	std::string_view shaderName = isOTC ? msg.getString() : "";
+	Shader* shader = nullptr;
+	if (!shaderName.empty()) {
+		shader = g_game.shaders.getShaderByName(shaderName);
+		newOutfit.lookShader = shader ? shader->id : 0;
+	}
 	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerChangeOutfit(playerID, newOutfit); });
 }
 
@@ -1383,7 +1399,7 @@ void ProtocolGame::parseEnableSharedPartyExperience(NetworkMessage& msg)
 
 void ProtocolGame::parseModalWindowAnswer(NetworkMessage& msg)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -1405,7 +1421,7 @@ void ProtocolGame::sendOpenPrivateChannel(std::string_view receiver)
 
 void ProtocolGame::sendPlayerTyping(const Creature* creature, bool typing)
 {
-	if (!canSee(creature)) {
+	if (!canSee(creature) || !isMehah) {
 		return;
 	}
 
@@ -1413,6 +1429,20 @@ void ProtocolGame::sendPlayerTyping(const Creature* creature, bool typing)
 	msg.addByte(0x38);
 	msg.add<uint32_t>(creature->getID());
 	msg.addByte(typing);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendDash(const Creature* creature, bool enabled)
+{
+	if (!creature || !canSee(creature)) {
+		return;
+	}
+
+	// Send the data to the client to let it know that the creature is dashing or not
+	NetworkMessage msg;
+	msg.addByte(0x4C);
+	msg.add<uint32_t>(creature->getID());
+	msg.addByte(enabled ? 0x01 : 0x00);
 	writeToOutputBuffer(msg);
 }
 
@@ -1607,7 +1637,7 @@ void ProtocolGame::sendContainer(uint8_t cid, const Container* container, bool h
 
 	msg.addByte(cid);
 
-	msg.addItem(container, isOTCv8);
+	msg.addItem(container, isOTC, isMehah, isOTCv8);
 	msg.addString(container->getName());
 
 	msg.addByte(static_cast<uint8_t>(container->capacity()));
@@ -1620,7 +1650,7 @@ void ProtocolGame::sendContainer(uint8_t cid, const Container* container, bool h
 	const ItemDeque& itemList = container->getItemList();
 	for (ItemDeque::const_iterator cit = itemList.begin() + firstIndex, end = itemList.end(); i < 0xFF && cit != end;
 	     ++cit, ++i) {
-		msg.addItem(*cit, isOTCv8);
+		msg.addItem(*cit, isOTC, isMehah, isOTCv8);
 	}
 	writeToOutputBuffer(msg);
 }
@@ -1722,7 +1752,7 @@ void ProtocolGame::sendSaleItemList(const std::list<ShopInfo>& shop)
 
 	uint8_t i = 0;
 	for (std::map<uint16_t, uint32_t>::const_iterator it = saleMap.begin(); i < itemsToSend; ++it, ++i) {
-		msg.addItemId(it->first, isOTCv8);
+		msg.addItemId(it->first, isOTC, isMehah, isOTCv8);
 		msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(it->second, std::numeric_limits<uint8_t>::max())));
 	}
 
@@ -1759,11 +1789,11 @@ void ProtocolGame::sendTradeItemRequest(std::string_view traderName, const Item*
 
 		msg.addByte(itemList.size());
 		for (const Item* listItem : itemList) {
-			msg.addItem(listItem, isOTCv8);
+			msg.addItem(listItem, isOTC, isMehah, isOTCv8);
 		}
 	} else {
 		msg.addByte(0x01);
-		msg.addItem(item, isOTCv8);
+		msg.addItem(item, isOTC, isMehah, isOTCv8);
 	}
 	writeToOutputBuffer(msg);
 }
@@ -2007,7 +2037,7 @@ void ProtocolGame::sendAddTileItem(const Position& pos, uint32_t stackpos, const
 	msg.addByte(0x6A);
 	msg.addPosition(pos);
 	msg.addByte(static_cast<uint8_t>(stackpos));
-	msg.addItem(item, isOTCv8);
+	msg.addItem(item, isOTC, isMehah, isOTCv8);
 	writeToOutputBuffer(msg);
 }
 
@@ -2021,7 +2051,7 @@ void ProtocolGame::sendUpdateTileItem(const Position& pos, uint32_t stackpos, co
 	msg.addByte(0x6B);
 	msg.addPosition(pos);
 	msg.addByte(static_cast<uint8_t>(stackpos));
-	msg.addItem(item, isOTCv8);
+	msg.addItem(item, isOTC, isMehah, isOTCv8);
 	writeToOutputBuffer(msg);
 }
 
@@ -2229,7 +2259,7 @@ void ProtocolGame::sendInventoryItem(slots_t slot, const Item* item)
 	if (item) {
 		msg.addByte(0x78);
 		msg.addByte(slot);
-		msg.addItem(item, isOTCv8);
+		msg.addItem(item, isOTC, isMehah, isOTCv8);
 	} else {
 		msg.addByte(0x79);
 		msg.addByte(slot);
@@ -2239,7 +2269,7 @@ void ProtocolGame::sendInventoryItem(slots_t slot, const Item* item)
 
 void ProtocolGame::sendModalWindow(const ModalWindow& modalWindow)
 {
-	if (!isOTCv8) {
+	if (!isOTC) {
 		return;
 	}
 
@@ -2274,7 +2304,7 @@ void ProtocolGame::sendAddContainerItem(uint8_t cid, const Item* item)
 	NetworkMessage msg;
 	msg.addByte(0x70);
 	msg.addByte(cid);
-	msg.addItem(item, isOTCv8);
+	msg.addItem(item, isOTC, isMehah, isOTCv8);
 	writeToOutputBuffer(msg);
 }
 
@@ -2284,7 +2314,7 @@ void ProtocolGame::sendUpdateContainerItem(uint8_t cid, uint16_t slot, const Ite
 	msg.addByte(0x71);
 	msg.addByte(cid);
 	msg.addByte(slot);
-	msg.addItem(item, isOTCv8);
+	msg.addItem(item, isOTC, isMehah, isOTCv8);
 	writeToOutputBuffer(msg);
 }
 
@@ -2302,7 +2332,7 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, Item* item, uint16_t ma
 	NetworkMessage msg;
 	msg.addByte(0x96);
 	msg.add<uint32_t>(windowTextId);
-	msg.addItem(item, isOTCv8);
+	msg.addItem(item, isOTC, isMehah, isOTCv8);
 
 	if (canWrite) {
 		msg.add<uint16_t>(maxlen);
@@ -2335,7 +2365,7 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, uint16_t itemId, std::s
 	NetworkMessage msg;
 	msg.addByte(0x96);
 	msg.add<uint32_t>(windowTextId);
-	msg.addItem(itemId, 1, isOTCv8);
+	msg.addItem(itemId, 1, isOTC, isMehah, isOTCv8);
 	msg.add<uint16_t>(text.size());
 	msg.addString(text);
 	msg.add<uint16_t>(0x00);
@@ -2375,6 +2405,24 @@ void ProtocolGame::sendOutfitWindow()
 		currentOutfit.lookMount = currentMount->clientId;
 	}
 
+	Wing* currentWing = g_game.wings.getWingByID(player->getCurrentWing());
+	if (currentWing) {
+		currentOutfit.lookWing = currentWing->id;
+	}
+	// @ -- auras
+	Aura* currentAura = g_game.auras.getAuraByID(player->getCurrentAura());
+	if (currentAura) {
+		currentOutfit.lookAura = currentAura->id;
+	}
+	// @ -- effects
+	Effect* currentEffect = g_game.effects.getEffectByID(player->getCurrentEffect());
+	if (currentEffect) {
+		currentOutfit.lookEffect = currentEffect->id;
+	}
+	Shader* currentShader = g_game.shaders.getShaderByID(player->getCurrentShader());
+	if (currentShader) {
+		currentOutfit.lookShader = currentShader->id;
+	}
 	/*bool mounted;
 	if (player->wasMounted) {
 	    mounted = currentOutfit.lookMount != 0;
@@ -2410,7 +2458,7 @@ void ProtocolGame::sendOutfitWindow()
 		msg.addByte(outfit.addons);
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		std::vector<const Mount*> mounts;
 		for (const Mount& mount : g_game.mounts.getMounts()) {
 			if (player->hasMount(&mount)) {
@@ -2422,6 +2470,60 @@ void ProtocolGame::sendOutfitWindow()
 		for (const Mount* mount : mounts) {
 			msg.add<uint16_t>(mount->clientId);
 			msg.addString(mount->name);
+		}
+		// wings
+		std::vector<const Wing*> wings;
+		for (const Wing& wing : g_game.wings.getWings()) {
+			if (player->hasWing(&wing)) {
+				wings.push_back(&wing);
+			}
+		}
+
+		msg.addByte(wings.size());
+		for (const Wing* wing : wings) {
+			msg.add<uint16_t>(wing->id);
+			msg.addString(wing->name);
+		}
+
+		// auras
+		std::vector<const Aura*> auras;
+		for (const Aura& aura : g_game.auras.getAuras()) {
+			if (player->hasAura(&aura)) {
+				auras.push_back(&aura);
+			}
+		}
+
+		msg.addByte(auras.size());
+		for (const Aura* aura : auras) {
+			msg.add<uint16_t>(aura->id);
+			msg.addString(aura->name);
+		}
+
+		// effects
+		std::vector<const Effect*> effects;
+		for (const Effect& effect : g_game.effects.getEffects()) {
+			if (player->hasEffect(&effect)) {
+				effects.push_back(&effect);
+			}
+		}
+
+		msg.addByte(effects.size());
+		for (const Effect* effect : effects) {
+			msg.add<uint16_t>(effect->id);
+			msg.addString(effect->name);
+		}
+		// shader
+		std::vector<const Shader*> shaders;
+		for (const Shader& shader : g_game.shaders.getShaders()) {
+			if (player->hasShader(&shader)) {
+				shaders.push_back(&shader);
+			}
+		}
+
+		msg.addByte(shaders.size());
+		for (const Shader* shader : shaders) {
+			msg.add<uint16_t>(shader->id);
+			msg.addString(shader->name);
 		}
 	}
 
@@ -2504,7 +2606,7 @@ void ProtocolGame::AddCreature(NetworkMessage& msg, const Creature* creature, bo
 	}
 
 	msg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
-	if (player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
+	if (isMehah) {
 		msg.addString(creature->getShader());
 		msg.addByte(static_cast<uint8_t>(creature->getAttachedEffectList().size()));
 		for (const uint16_t id : creature->getAttachedEffectList()) msg.add<uint16_t>(id);
@@ -2533,7 +2635,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxMana(), std::numeric_limits<uint16_t>::max())));
 
 	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max())));
-	msg.addByte(player->getMagicLevelPercent() / 100);
+	msg.addByte(static_cast<uint8_t>(player->getMagicLevelPercent()));
 
 	msg.addByte(player->getSoul());
 
@@ -2558,14 +2660,14 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		msg.addByte(
 		    std::min<uint8_t>(static_cast<uint8_t>(player->getSkillLevel(i)), std::numeric_limits<uint8_t>::max()));
-		msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i) / 100));
+		msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i)));
 	}
 }
 
 void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 {
 	uint16_t lookType = outfit.lookType;
-	if (isOTCv8 && lookType >= 367) {
+	if (isOTC && lookType >= 367) {
 		lookType = 128;
 	}
 
@@ -2578,11 +2680,17 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 		msg.addByte(outfit.lookFeet);
 		msg.addByte(outfit.lookAddons);
 	} else {
-		msg.addItemId(outfit.lookTypeEx, isOTCv8);
+		msg.addItemId(outfit.lookTypeEx, isOTC, isMehah, isOTCv8);
 	}
 
-	if (isOTCv8) {
+	if (isOTC) {
 		msg.add<uint16_t>(outfit.lookMount);
+		msg.add<uint16_t>(outfit.lookWing);
+		msg.add<uint16_t>(outfit.lookAura);
+		msg.add<uint16_t>(outfit.lookEffect);
+
+		Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
+		msg.addString(shader ? shader->name : "");
 	}
 }
 
@@ -2740,13 +2848,9 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 	});
 }
 
-
-
-
 void ProtocolGame::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
-	const Player* player = creature->getPlayer();
-	if (player && player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
+	if (isMehah) {
 		NetworkMessage playermsg;
 		playermsg.reset();
 		playermsg.addByte(0x34);
@@ -2765,36 +2869,34 @@ void ProtocolGame::sendAttachedEffect(const Creature* creature, uint16_t effectI
 
 void ProtocolGame::sendDetachEffect(const Creature* creature, uint16_t effectId)
 {
-	const Player* player = creature->getPlayer();
-	if (player && player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x35);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.add<uint16_t>(effectId);
-		writeToOutputBuffer(playermsg);
-	}
+	if (!isMehah) return;
+
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x35);
+	playermsg.add<uint32_t>(creature->getID());
+	playermsg.add<uint16_t>(effectId);
+	writeToOutputBuffer(playermsg);
 }
 void ProtocolGame::sendShader(const Creature* creature, const std::string& shaderName)
 {
-	const Player* player = creature->getPlayer();
-	if (player && player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x36);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.addString(shaderName);
-		writeToOutputBuffer(playermsg);
-	}
+	if (!isMehah) return;
+
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x36);
+	playermsg.add<uint32_t>(creature->getID());
+	playermsg.addString(shaderName);
+	writeToOutputBuffer(playermsg);
 }
 
 void ProtocolGame::sendMapShader(const std::string& shaderName)
 {
-	if (player->getOperatingSystem() >= CLIENTOS_OTCLIENT_LINUX) {
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x37);
-		playermsg.addString(shaderName);
-		writeToOutputBuffer(playermsg);
-	}
+	if (!isMehah) return;
+
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x37);
+	playermsg.addString(shaderName);
+	writeToOutputBuffer(playermsg);
 }

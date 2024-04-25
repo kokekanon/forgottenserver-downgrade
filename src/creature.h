@@ -334,7 +334,6 @@ public:
 	std::string getShader() const { return shader; }
 	void setShader(const std::string& shaderName) { shader = shaderName; }
 
-
 	void incrementReferenceCounter() { ++referenceCounter; }
 	void decrementReferenceCounter()
 	{
@@ -350,8 +349,8 @@ public:
 	// for lua module
 	CreatureEventList getCreatureEvents(CreatureEventType_t type) const;
 
-	void setHealth(int32_t newHealth) { health = std::min<int32_t>(newHealth, healthMax); }
-	void setMaxHealth(int32_t newMaxHealth) { healthMax = newMaxHealth; }
+	void setHealth(int32_t newHealth) { health = std::max<int32_t>(0, std::min<int32_t>(newHealth, healthMax)); }
+	void setMaxHealth(int32_t newMaxHealth) { healthMax = std::max<int32_t>(0, newMaxHealth); }
 
 	void setDefaultOutfit(Outfit_t outfit) { defaultOutfit = outfit; }
 
@@ -361,6 +360,7 @@ public:
 	void detachEffectById(uint16_t id);
 	const std::vector<uint16_t> getAttachedEffectList() const { return attachedEffectList; }
 
+	bool manageDash(bool enabled);
 
 protected:
 	virtual bool useCacheMap() const { return false; }
@@ -412,6 +412,10 @@ protected:
 	Outfit_t currentOutfit;
 	Outfit_t defaultOutfit;
 	uint16_t currentMount;
+	uint16_t currentWing;
+	uint16_t currentAura;
+	uint16_t currentEffect;
+	uint16_t currentShader;
 
 	Position lastPosition;
 	LightInfo internalLight;

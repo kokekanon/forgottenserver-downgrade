@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <spawns>
-	<spawn centerx="94" centery="127" centerz="7" radius="1">
-		<monster name="Orc" x="0" y="0" z="7" spawntime="60" direction="2" />
+	<spawn centerx="85" centery="123" centerz="6" radius="1">
+		<monster name="Orc" x="1" y="0" z="6" spawntime="60" direction="2" />
 	</spawn>
 </spawns>

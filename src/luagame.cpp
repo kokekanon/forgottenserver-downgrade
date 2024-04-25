@@ -254,6 +254,66 @@ int luaGameGetMounts(lua_State* L)
 	return 1;
 }
 
+int luaGameGetWings(lua_State* L)
+{
+	// Game.getWings()
+	const auto& wings = g_game.wings.getWings();
+	lua_createtable(L, wings.size(), 0);
+
+	int index = 0;
+	for (const auto& wing : wings) {
+		pushWing(L, &wing);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+// shaders
+int luaGameGetShaders(lua_State* L)
+{
+	// Game.getShaders()
+	const auto& shaders = g_game.shaders.getShaders();
+	lua_createtable(L, shaders.size(), 0);
+
+	int index = 0;
+	for (const auto& shader : shaders) {
+		pushShader(L, &shader);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
+int luaGameGetAuras(lua_State* L)
+{
+	// Game.getAuras()
+	const auto& auras = g_game.auras.getAuras();
+	lua_createtable(L, auras.size(), 0);
+
+	int index = 0;
+	for (const auto& aura : auras) {
+		pushAura(L, &aura);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
+int luaGameGetEffects(lua_State* L)
+{
+	// Game.getEffects()
+	const auto& effects = g_game.effects.getEffects();
+	lua_createtable(L, effects.size(), 0);
+
+	int index = 0;
+	for (const auto& effect : effects) {
+		pushEffect(L, &effect);
+		lua_rawseti(L, -2, ++index);
+	}
+
+	return 1;
+}
+
 int luaGameGetVocations(lua_State* L)
 {
 	// Game.getVocations()
@@ -436,7 +496,7 @@ int luaGameCreateMonster(lua_State* L)
 				monster->setShader(monster->shaderEffect());
 				g_game.updateCreatureShader(monster);
 			}
-			
+
 		} else {
 			delete monster;
 			lua_pushnil(L);
@@ -665,6 +725,62 @@ int luaGameGetWaypoints(lua_State* L)
 	}
 	return 1;
 }
+
+int luaGameGetThingFromClientPos(lua_State* L)
+{
+	// Game.getThingFromClientPos(player, position, stackPos)
+	const auto player = getPlayer(L, 1);
+	const Position& position = getPosition(L, 2);
+	const auto stackPos = getInteger<uint8_t>(L, 3);
+	auto thing = g_game.internalGetThing(player, position, stackPos, 0, STACKPOS_LOOK);
+	pushThing(L, thing);
+	return 1;
+}
+
+int luaGameGetGameStorageValue(lua_State* L)
+{
+	// Game.getStorageValue(key)
+	uint32_t key = getInteger<uint32_t>(L, 1);
+
+	const auto& value = g_game.getStorageValue(key);
+	if (value) {
+		lua_pushinteger(L, value.value());
+	} else if (isInteger(L, 3)) {
+		lua_pushinteger(L, getInteger<int64_t>(L, 3));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaGameSetGameStorageValue(lua_State* L)
+{
+	// Game.setGameStorageValue(key, value)
+	if (!isInteger(L, 1)) {
+		reportErrorFunc(L, "Invalid storage key.");
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint32_t key = getInteger<uint32_t>(L, 1);
+	if (isInteger(L, 2)) {
+		int64_t value = getInteger<int64_t>(L, 2);
+		g_game.setStorageValue(key, value);
+	} else {
+		g_game.setStorageValue(key, std::nullopt);
+	}
+
+	pushBoolean(L, true);
+	return 1;
+}
+
+int luaGameSaveGameStorageValues(lua_State* L)
+{
+	// Game.saveStorageValues()
+	pushBoolean(L, g_game.saveGameStorageValues());
+
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerGame()
@@ -690,6 +806,10 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "getHouses", luaGameGetHouses);
 	registerMethod("Game", "getOutfits", luaGameGetOutfits);
 	registerMethod("Game", "getMounts", luaGameGetMounts);
+	registerMethod("Game", "getWings", luaGameGetWings);
+	registerMethod("Game", "getEffects", luaGameGetEffects);
+	registerMethod("Game", "getAuras", luaGameGetAuras);
+	registerMethod("Game", "getShaders", luaGameGetShaders);
 
 	registerMethod("Game", "getGameState", luaGameGetGameState);
 	registerMethod("Game", "setGameState", luaGameSetGameState);
@@ -720,4 +840,9 @@ void LuaScriptInterface::registerGame()
 	registerMethod("Game", "saveAccountStorageValues", luaGameSaveAccountStorageValues);
 
 	registerMethod("Game", "getWaypoints", luaGameGetWaypoints);
+	registerMethod("Game", "getThingFromClientPos", luaGameGetThingFromClientPos);
+
+	registerMethod("Game", "getStorageValue", luaGameGetGameStorageValue);
+	registerMethod("Game", "setStorageValue", luaGameSetGameStorageValue);
+	registerMethod("Game", "saveStorageValues", luaGameSaveGameStorageValues);
 }

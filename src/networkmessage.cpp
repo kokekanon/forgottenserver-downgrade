@@ -80,22 +80,21 @@ void NetworkMessage::addPosition(const Position& pos)
 	addByte(pos.z);
 }
 
-void NetworkMessage::addItemId(uint16_t itemId, const bool isOTCv8)
+void NetworkMessage::addItemId(uint16_t itemId, const bool isOTC, const bool isMehah, const bool isOTCv8)
 {
 	const ItemType& it = Item::items[itemId];
 	uint16_t clientId = it.clientId;
-	 /*
+
 	if (isOTCv8 && itemId > 12660) {
 		clientId = it.stackable ? 3031 : 105;
 	}
-	*/
 
 	add<uint16_t>(clientId);
 }
 
-void NetworkMessage::addItem(uint16_t id, uint8_t count, const bool isOTCv8)
+void NetworkMessage::addItem(uint16_t id, uint8_t count, const bool isOTC, const bool isMehah, const bool isOTCv8)
 {
-	addItemId(id, isOTCv8);
+	addItemId(id, isOTC, isMehah, isOTCv8);
 
 	const ItemType& it = Item::items[id];
 	if (it.stackable) {
@@ -103,15 +102,15 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count, const bool isOTCv8)
 	} else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[count & 7]);
 	}
-	if (isOTCv8) {
+	if (isMehah) {
 		addString(""); //--> shader
-	//	 addString(""); // fail tooltsips
+	//	 addString(""); // g_game.enableFeature(GameItemTooltipV8); tooltsips
 	}
 }
 
-void NetworkMessage::addItem(const Item* item, const bool isOTCv8)
+void NetworkMessage::addItem(const Item* item, const bool isOTC, const bool isMehah, const bool isOTCv8)
 {
-	addItemId(item->getID(), isOTCv8);
+	addItemId(item->getID(), isOTC, isMehah, isOTCv8);
 
 	const ItemType& it = Item::items[item->getID()];
 	if (it.stackable) {
@@ -119,10 +118,8 @@ void NetworkMessage::addItem(const Item* item, const bool isOTCv8)
 	} else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[item->getFluidType() & 7]);
 	}
-	if (isOTCv8) {
-		addString(item->getShader());  //Shader
-		//addString(item->getName());  // fail tooltsips
-
+	if (isMehah) {
+		addString(item->getShader()); // Shader
+		// addString(item->getName());  // g_game.enableFeature(GameItemTooltipV8); tooltsips
 	}
-
 }

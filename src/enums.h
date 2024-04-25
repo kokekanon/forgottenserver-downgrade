@@ -277,6 +277,12 @@ enum ConditionParam_t
 	CONDITION_PARAM_SPECIALSKILL_MANALEECHAMOUNT = 53,
 	CONDITION_PARAM_AGGRESSIVE = 54,
 	CONDITION_PARAM_DRUNKENNESS = 55,
+	CONDITION_PARAM_EXPERIENCERATE_BASE = 56,
+	CONDITION_PARAM_EXPERIENCERATE_LOW_LEVEL = 57,
+	CONDITION_PARAM_EXPERIENCERATE_BONUS = 58,
+	CONDITION_PARAM_EXPERIENCERATE_STAMINA = 59,
+	CONDITION_PARAM_HEALTHGAINPERCENT = 60,
+	CONDITION_PARAM_MANAGAINPERCENT = 61,
 };
 
 enum BlockType_t : uint8_t
@@ -498,11 +504,24 @@ enum MapMark_t
 	MAPMARK_GREENSOUTH = 19,
 };
 
+enum class ExperienceRateType : uint8_t
+{
+	BASE = 1,
+	LOW_LEVEL = 2,
+	BONUS = 3,
+	STAMINA = 4,
+};
+
 struct Outfit_t
 {
 	uint16_t lookType = 0;
 	uint16_t lookTypeEx = 0;
 	uint16_t lookMount = 0;
+	uint16_t lookWing = 0;
+	uint16_t lookAura = 0;
+	uint16_t lookEffect = 0;
+	uint16_t lookShader = 0;
+
 	uint8_t lookHead = 0;
 	uint8_t lookBody = 0;
 	uint8_t lookLegs = 0;

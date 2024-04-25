@@ -195,6 +195,7 @@ private:
 
 	void sendCreatureLight(const Creature* creature);
 	void sendPlayerTyping(const Creature* creature, bool typing);
+	void sendDash(const Creature* creature, bool enabled);
 
 	void sendCreatureSquare(const Creature* creature, SquareColor_t color);
 
@@ -274,6 +275,9 @@ private:
 	uint8_t challengeRandom = 0;
 
 	bool isOTCv8 = false;
+	bool isMehah = false;
+	bool isOTC = false;
+
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
 };

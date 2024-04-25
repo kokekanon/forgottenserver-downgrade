@@ -11,6 +11,7 @@
 #include "databasemanager.h"
 #include "databasetasks.h"
 #include "depotchest.h"
+#include "events.h"
 #include "game.h"
 #include "housetile.h"
 #include "luavariant.h"
@@ -577,6 +578,23 @@ void LuaScriptInterface::callVoidFunction(int params)
 	resetScriptEnv();
 }
 
+ReturnValue LuaScriptInterface::callReturnValueFunction(int params)
+{
+	int size = lua_gettop(luaState);
+	if (protectedCall(luaState, params, 0) != 0) {
+		LuaScriptInterface::reportError(nullptr, Lua::popString(luaState));
+		return RETURNVALUE_NOTPOSSIBLE;
+	}
+
+	if ((lua_gettop(luaState) + params + 1) != size) {
+		LuaScriptInterface::reportError(nullptr, "Stack size changed!");
+		return RETURNVALUE_NOTPOSSIBLE;
+	}
+
+	resetScriptEnv();
+	return Lua::getInteger<ReturnValue>(luaState, -1);
+}
+
 void Lua::pushVariant(lua_State* L, const LuaVariant& var)
 {
 	lua_createtable(L, 0, 2);
@@ -725,6 +743,7 @@ void Lua::setCreatureMetatable(lua_State* L, int32_t index, const Creature* crea
 }
 
 // Is
+bool Lua::isNone(lua_State* L, int32_t arg) { return lua_isnone(L, arg); }
 bool Lua::isNumber(lua_State* L, int32_t arg) { return lua_type(L, arg) == LUA_TNUMBER; }
 bool Lua::isInteger(lua_State* L, int32_t arg) { return lua_isinteger(L, arg) != 0; }
 bool Lua::isString(lua_State* L, int32_t arg) { return lua_isstring(L, arg) != 0; }
@@ -1004,6 +1023,10 @@ void Lua::pushOutfit(lua_State* L, const Outfit_t& outfit)
 	setField(L, "lookType", outfit.lookType);
 	setField(L, "lookTypeEx", outfit.lookTypeEx);
 	setField(L, "lookMount", outfit.lookMount);
+	setField(L, "lookWing", outfit.lookWing);
+	setField(L, "lookAura", outfit.lookAura);
+	setField(L, "lookEffect", outfit.lookEffect);
+	setField(L, "lookShader", outfit.lookShader);
 	setField(L, "lookHead", outfit.lookHead);
 	setField(L, "lookBody", outfit.lookBody);
 	setField(L, "lookLegs", outfit.lookLegs);
@@ -1031,6 +1054,40 @@ void Lua::pushMount(lua_State* L, const Mount* mount)
 	setField(L, "id", mount->id);
 	setField(L, "premium", mount->premium);
 }
+
+void Lua::pushWing(lua_State* L, const Wing* wing)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", wing->name);
+	setField(L, "speed", wing->speed);
+	setField(L, "id", wing->id);
+	setField(L, "premium", wing->premium);
+}
+void Lua::pushShader(lua_State* L, const Shader* shader)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", shader->name);
+	setField(L, "id", shader->id);
+	setField(L, "premium", shader->premium);
+}
+
+void Lua::pushAura(lua_State* L, const Aura* aura)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", aura->name);
+	setField(L, "speed", aura->speed);
+	setField(L, "id", aura->id);
+	setField(L, "premium", aura->premium);
+}
+void Lua::pushEffect(lua_State* L, const Effect* effect)
+{
+	lua_createtable(L, 0, 5);
+	setField(L, "name", effect->name);
+	setField(L, "speed", effect->speed);
+	setField(L, "id", effect->id);
+	setField(L, "premium", effect->premium);
+}
+
 
 void Lua::pushLoot(lua_State* L, const std::vector<LootBlock>& lootList)
 {
@@ -1201,7 +1258,7 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(BUG_CATEGORY_TECHNICAL);
 	registerEnum(BUG_CATEGORY_OTHER);
 
-	// configKeys
+	// CallBackParam
 	registerTable("CallBackParam");
 
 	registerEnumClass(CallBackParam::LEVELMAGICVALUE);
@@ -1209,11 +1266,21 @@ void LuaScriptInterface::registerFunctions()
 	registerEnumClass(CallBackParam::TARGETTILE);
 	registerEnumClass(CallBackParam::TARGETCREATURE);
 
+	// ExperienceRateType
+	registerTable("ExperienceRateType");
+
+	registerEnumClass(ExperienceRateType::BASE);
+	registerEnumClass(ExperienceRateType::LOW_LEVEL);
+	registerEnumClass(ExperienceRateType::BONUS);
+	registerEnumClass(ExperienceRateType::STAMINA);
+
+	// Combat Formula
 	registerEnum(COMBAT_FORMULA_UNDEFINED);
 	registerEnum(COMBAT_FORMULA_LEVELMAGIC);
 	registerEnum(COMBAT_FORMULA_SKILL);
 	registerEnum(COMBAT_FORMULA_DAMAGE);
 
+	// Direction
 	registerEnum(DIRECTION_NORTH);
 	registerEnum(DIRECTION_EAST);
 	registerEnum(DIRECTION_SOUTH);
@@ -1948,6 +2015,10 @@ void LuaScriptInterface::registerFunctions()
 	registerEnum(RELOAD_TYPE_ITEMS);
 	registerEnum(RELOAD_TYPE_MONSTERS);
 	registerEnum(RELOAD_TYPE_MOUNTS);
+	registerEnum(RELOAD_TYPE_SHADERS);
+	registerEnum(RELOAD_TYPE_WINGS);
+	registerEnum(RELOAD_TYPE_AURAS);
+	registerEnum(RELOAD_TYPE_EFFECTS);
 	registerEnum(RELOAD_TYPE_MOVEMENTS);
 	registerEnum(RELOAD_TYPE_NPCS);
 	registerEnum(RELOAD_TYPE_QUESTS);

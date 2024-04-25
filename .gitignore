@@ -54,6 +54,8 @@ vcpkg_installed/
 *.scc
 *.dll
 *.exe
+*.py
+*.bat
 
 # Visual C++ cache files
 ipch/
