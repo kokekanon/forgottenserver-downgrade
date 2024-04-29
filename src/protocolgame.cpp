@@ -374,11 +374,9 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	if (operatingSystem == CLIENTOS_OTCLIENT_WINDOWS) {
 		isMehah = true;
 	}
-
 	isOTC = isOTCv8 || isMehah;
-
-	if (isOTC) {
-		//sendOTCv8Features();
+	if (isOTCv8) {
+		sendOTCv8Features();
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -2917,18 +2915,13 @@ void ProtocolGame::sendMapShader(const std::string& shaderName)
 
 void ProtocolGame::sendOTCv8Features()
 {
-		if (!isOTCv8) return;
-	std::vector<GameFeature> features = {GameFeature::ExtendedOpcode,   GameFeature::PlayerMounts,
-	                                     GameFeature::SpritesU32,       GameFeature::SpritesAlphaChannel,
-	                                     GameFeature::IdleAnimations,   GameFeature::EnhancedAnimations,
-	                                     GameFeature::AdditionalSkills, GameFeature::DoubleSkills,
-	                                     GameFeature::SkillsBase,       GameFeature::BaseSkillU16};
+	const auto& features = g_config.getOTCFeatures();
 
 	auto msg = getOutputBuffer(1024);
 	msg->addByte(0x43);
 	msg->add<uint16_t>(features.size());
-	for (const GameFeature& feature : features) {
-		msg->addByte(static_cast<uint8_t>(feature));
+	for (uint8_t feature : features) {
+		msg->addByte(feature);
 		msg->addByte(0x01);
 	}
 
