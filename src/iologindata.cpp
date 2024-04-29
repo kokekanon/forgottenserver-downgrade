@@ -321,12 +321,10 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	PropStream propStream;
 	propStream.init(conditions.data(), conditions.size());
 
-	Condition* condition = Condition::createCondition(propStream);
+	Condition_ptr condition = Condition::createCondition(propStream);
 	while (condition) {
 		if (condition->unserialize(propStream)) {
-			player->storedConditionList.push_front(condition);
-		} else {
-			delete condition;
+			player->storedConditionList.push_front(condition.release());
 		}
 		condition = Condition::createCondition(propStream);
 	}
@@ -751,7 +749,7 @@ bool IOLoginData::savePlayer(Player* player)
 	// serialize conditions
 	PropWriteStream propWriteStream;
 	for (Condition* condition : player->conditions) {
-		if (condition->isPersistent()) {
+		if (condition->isPersistent() || condition->isConstant()) {
 			condition->serialize(propWriteStream);
 			propWriteStream.write<uint8_t>(CONDITIONATTR_END);
 		}

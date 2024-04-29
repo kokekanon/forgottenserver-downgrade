@@ -16,7 +16,7 @@ int luaConditionCreate(lua_State* L)
 	ConditionType_t conditionType = getInteger<ConditionType_t>(L, 2);
 	ConditionId_t conditionId = getInteger<ConditionId_t>(L, 3, CONDITIONID_COMBAT);
 
-	Condition* condition = Condition::createCondition(conditionId, conditionType, 0, 0);
+	auto condition = Condition::createCondition(conditionId, conditionType, 0, 0);
 	if (condition) {
 		pushUserdata<Condition>(L, condition);
 		setMetatable(L, -1, "Condition");
@@ -249,6 +249,31 @@ int luaConditionGetTotalDamage(lua_State* L)
 	}
 	return 1;
 }
+
+int luaConditionIsConstant(lua_State* L)
+{
+	// condition:isConstant()
+	const Condition* condition = getUserdata<const Condition>(L, 1);
+	if (condition) {
+		pushBoolean(L, condition->isConstant());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaConditionSetConstant(lua_State* L)
+{
+	// condition:setConstant(bool)
+	Condition* condition = getUserdata<Condition>(L, 1);
+	if (condition) {
+		condition->setConstant(getBoolean(L, 2));
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
 } // namespace
 
 void LuaScriptInterface::registerCondition()
@@ -278,4 +303,7 @@ void LuaScriptInterface::registerCondition()
 
 	registerMethod("Condition", "setInitDamage", luaConditionSetInitDamage);
 	registerMethod("Condition", "getTotalDamage", luaConditionGetTotalDamage);
+
+	registerMethod("Condition", "isConstant", luaConditionIsConstant);
+	registerMethod("Condition", "setConstant", luaConditionSetConstant);
 }

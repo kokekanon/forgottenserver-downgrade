@@ -22,7 +22,7 @@ std::vector<Tile*> getList(const MatrixArea& area, const Position& targetPos, co
 
 	std::vector<Tile*> vec;
 
-	auto center = area.getCenter();
+	auto& center = area.getCenter();
 
 	Position tmpPos(targetPos.x - center.first, targetPos.y - center.second, targetPos.z);
 	for (uint32_t row = 0; row < area.getRows(); ++row, ++tmpPos.y) {
@@ -437,7 +437,7 @@ bool Combat::setParam(CombatParam_t param, uint32_t value)
 	return false;
 }
 
-int32_t Combat::getParam(CombatParam_t param)
+int32_t Combat::getParam(CombatParam_t param) const
 {
 	switch (param) {
 		case COMBAT_PARAM_TYPE:
@@ -722,22 +722,15 @@ void Combat::doCombat(Creature* caster, const Position& position) const
 		                    : getCombatArea(position, position, area.get());
 
 		SpectatorVec spectators;
-		uint32_t maxX = 0;
-		uint32_t maxY = 0;
+		int32_t maxX = 0;
+		int32_t maxY = 0;
 
 		// calculate the max viewable range
 		for (Tile* tile : tiles) {
 			const Position& tilePos = tile->getPosition();
 
-			uint32_t diff = Position::getDistanceX(tilePos, position);
-			if (diff > maxX) {
-				maxX = diff;
-			}
-
-			diff = Position::getDistanceY(tilePos, position);
-			if (diff > maxY) {
-				maxY = diff;
-			}
+			maxX = std::max(maxX, tilePos.getDistanceX(position));
+			maxY = std::max(maxY, tilePos.getDistanceY(position));
 		}
 
 		const int32_t rangeX = maxX + Map::maxViewportX;
@@ -919,22 +912,15 @@ void Combat::doAreaCombat(Creature* caster, const Position& position, const Area
 		}
 	}
 
-	uint32_t maxX = 0;
-	uint32_t maxY = 0;
+	int32_t maxX = 0;
+	int32_t maxY = 0;
 
 	// calculate the max viewable range
 	for (Tile* tile : tiles) {
 		const Position& tilePos = tile->getPosition();
 
-		uint32_t diff = Position::getDistanceX(tilePos, position);
-		if (diff > maxX) {
-			maxX = diff;
-		}
-
-		diff = Position::getDistanceY(tilePos, position);
-		if (diff > maxY) {
-			maxY = diff;
-		}
+		maxX = std::max(maxX, tilePos.getDistanceX(position));
+		maxY = std::max(maxY, tilePos.getDistanceY(position));
 	}
 
 	const int32_t rangeX = maxX + Map::maxViewportX;
@@ -1236,8 +1222,8 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 
 const MatrixArea& AreaCombat::getArea(const Position& centerPos, const Position& targetPos) const
 {
-	int32_t dx = Position::getOffsetX(targetPos, centerPos);
-	int32_t dy = Position::getOffsetY(targetPos, centerPos);
+	int32_t dx = targetPos.getOffsetX(centerPos);
+	int32_t dy = targetPos.getOffsetY(centerPos);
 
 	Direction dir;
 	if (dx < 0) {

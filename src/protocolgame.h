@@ -263,6 +263,8 @@ private:
 	void sendShader(const Creature* creature, const std::string& shaderName);
 	void sendMapShader(const std::string& shaderName);
 
+	void sendOTCv8Features();
+
 	friend class Player;
 
 	std::unordered_set<uint32_t> knownCreatureSet;

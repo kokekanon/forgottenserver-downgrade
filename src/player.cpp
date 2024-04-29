@@ -28,6 +28,7 @@ extern Events* g_events;
 MuteCountMap Player::muteCountMap;
 
 uint32_t Player::playerAutoID = 0x10000000;
+std::forward_list<Condition*> Player::storedConditionList;
 
 Player::Player(ProtocolGame_ptr p) : Creature(), lastPing(OTSYS_TIME()), lastPong(lastPing), client(std::move(p))
 {
@@ -979,7 +980,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			}
 		}
 
-		for (Condition* condition : storedConditionList) {
+		for (auto condition : storedConditionList) {
 			addCondition(condition);
 		}
 		storedConditionList.clear();
@@ -1184,11 +1185,11 @@ void Player::onCreatureMove(Creature* creature, const Tile* newTile, const Posit
 
 	if (tradeState != TRADE_TRANSFER) {
 		// check if we should close trade
-		if (tradeItem && !Position::areInRange<1, 1, 0>(tradeItem->getPosition(), getPosition())) {
+		if (tradeItem && !tradeItem->getPosition().isInRange(getPosition(), 1, 1, 0)) {
 			g_game.internalCloseTrade(this);
 		}
 
-		if (tradePartner && !Position::areInRange<2, 2, 0>(tradePartner->getPosition(), getPosition())) {
+		if (tradePartner && !tradePartner->getPosition().isInRange(getPosition(), 2, 2, 0)) {
 			g_game.internalCloseTrade(this);
 		}
 	}
@@ -1200,7 +1201,7 @@ void Player::onCreatureMove(Creature* creature, const Tile* newTile, const Posit
 	if (teleport || oldPos.z != newPos.z) {
 		const int64_t ticks = g_config[ConfigKeysInteger::STAIRHOP_DELAY];
 		if (ticks > 0) {
-			if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_PACIFIED, ticks, 0)) {
+			if (auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_PACIFIED, ticks, 0)) {
 				addCondition(condition);
 			}
 		}
@@ -1421,7 +1422,7 @@ void Player::removeMessageBuffer()
 
 			uint32_t muteTime = 5 * muteCount * muteCount;
 			muteCountMap[guid] = muteCount + 1;
-			Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, muteTime * 1000, 0);
+			auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, muteTime * 1000, 0);
 			addCondition(condition);
 
 			sendTextMessage(MESSAGE_STATUS_SMALL, fmt::format("You are muted for {:d} seconds.", muteTime));
@@ -1959,7 +1960,7 @@ void Player::death(Creature* lastHitCreature)
 		auto it = conditions.begin(), end = conditions.end();
 		while (it != end) {
 			Condition* condition = *it;
-			if (condition->isPersistent()) {
+			if (condition->isPersistent() && !condition->isConstant()) {
 				it = conditions.erase(it);
 
 				condition->endCondition(this);
@@ -1975,7 +1976,7 @@ void Player::death(Creature* lastHitCreature)
 		auto it = conditions.begin(), end = conditions.end();
 		while (it != end) {
 			Condition* condition = *it;
-			if (condition->isPersistent()) {
+			if (condition->isPersistent() && !condition->isConstant()) {
 				it = conditions.erase(it);
 
 				condition->endCondition(this);
@@ -2052,13 +2053,13 @@ Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
 
 void Player::addCombatExhaust(uint32_t ticks)
 {
-	Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_COMBAT, ticks, 0);
+	auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_COMBAT, ticks, 0);
 	addCondition(condition);
 }
 
 void Player::addHealExhaust(uint32_t ticks)
 {
-	Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_HEAL, ticks, 0);
+	auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST_HEAL, ticks, 0);
 	addCondition(condition);
 }
 
@@ -2072,7 +2073,7 @@ void Player::addInFightTicks(bool pzlock /*= false*/)
 		pzLocked = true;
 	}
 
-	Condition* condition =
+	auto condition =
 	    Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT, g_config[ConfigKeysInteger::PZ_LOCKED], 0);
 	addCondition(condition);
 }
@@ -2921,7 +2922,7 @@ void Player::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_
 
 			for (const auto& it : openContainers) {
 				Container* container = it.second.container;
-				if (!Position::areInRange<1, 1, 0>(container->getPosition(), getPosition())) {
+				if (!container->getPosition().isInRange(getPosition(), 1, 1, 0)) {
 					containers.push_back(container);
 				}
 			}
@@ -2964,7 +2965,7 @@ void Player::postRemoveNotification(Thing* thing, const Cylinder* newParent, int
 
 	if (const Item* item = thing->getItem()) {
 		if (const Container* container = item->getContainer()) {
-			if (container->isRemoved() || !Position::areInRange<1, 1, 0>(getPosition(), container->getPosition())) {
+			if (container->isRemoved() || !getPosition().isInRange(container->getPosition(), 1, 1, 0)) {
 				autoCloseContainers(container);
 			} else if (container->getTopParent() == this) {
 				onSendContainer(container);
@@ -3482,8 +3483,8 @@ bool Player::onKilledCreature(Creature* target, bool lastHit /* = true*/)
 
 			if (lastHit && hasCondition(CONDITION_INFIGHT)) {
 				pzLocked = true;
-				Condition* condition = Condition::createCondition(
-				    CONDITIONID_DEFAULT, CONDITION_INFIGHT, g_config[ConfigKeysInteger::WHITE_SKULL_TIME] * 1000, 0);
+				auto condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT,
+				                                            g_config[ConfigKeysInteger::WHITE_SKULL_TIME] * 1000, 0);
 				addCondition(condition);
 			}
 		}
