@@ -84,7 +84,7 @@ void NetworkMessage::addItemId(uint16_t itemId, const bool isOTC, const bool isM
 {
 	const ItemType& it = Item::items[itemId];
 	uint16_t clientId = it.clientId;
-	if (!isOTCv8 && itemId > 12660) {
+	if (!isOTC && itemId > 12660) {
 		clientId = it.stackable ? 3031 : 105;
 	}
 

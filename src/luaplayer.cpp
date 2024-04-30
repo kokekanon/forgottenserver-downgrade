@@ -2614,7 +2614,7 @@ int luaPlayerIsUsingOtcV8(lua_State* L)
 		return 1;
 	}
 
-	pushBoolean(L, player->isOTCv8());
+	pushBoolean(L, player->isOTC());
 	return 1;
 }
 

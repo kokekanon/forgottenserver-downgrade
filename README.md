@@ -70,12 +70,22 @@ attacheffect monster:
 > [!IMPORTANT]
 > Active features OTC
 ```
+        g_game.enableFeature(GameFormatCreatureName)
+
+        
+        g_game.enableFeature(GameDoubleMagicLevel);
+        g_game.enableFeature(GameDoubleSkills)
+        g_game.enableFeature(GameSkillsBase)
+        g_game.enableFeature(GameBaseSkillU16)
+        g_game.enableFeature(GameAdditionalSkills)
+        g_game.enableFeature(GameLeechAmount);
+        
+        g_game.enableFeature(GamePlayerMounts)
         g_game.enableFeature(GameCreatureShader)
         g_game.enableFeature(GameCreatureAttachedEffect) 
         g_game.enableFeature(GameClientPing)
-        g_game.enableFeature(GamePlayerMounts);
         g_game.enableFeature(GameItemShader)
-        g_game.enableFeature(GameWingsAurasEffects)
+        g_game.enableFeature(GameWingsAurasEffectsShader)
 
 ```
 

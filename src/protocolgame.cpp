@@ -375,15 +375,17 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 		isMehah = true;
 	}
 	isOTC = isOTCv8 || isMehah;
-	if (isOTCv8) {
-		sendOTCv8Features();
+
+	if (isOTC) {
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
 		opcodeMessage.add<uint16_t>(0x00);
 		writeToOutputBuffer(opcodeMessage);
 	}
-
+	if (isOTCv8) {
+		sendOTCv8Features();
+	}
 	if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 		disconnectClient(fmt::format("Only clients with protocol {:s} allowed!", CLIENT_VERSION_STR));
 		return;
@@ -1069,11 +1071,11 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 	newOutfit.lookFeet = msg.getByte();
 	newOutfit.lookAddons = msg.getByte();
 	newOutfit.lookMount = isOTC ? msg.get<uint16_t>() : 0;
-	newOutfit.lookWing = isOTC ? msg.get<uint16_t>() : 0;
-	newOutfit.lookAura = isOTC ? msg.get<uint16_t>() : 0;
-	newOutfit.lookEffect = isOTC ? msg.get<uint16_t>() : 0;
+	newOutfit.lookWing = isMehah ? msg.get<uint16_t>() : 0;
+	newOutfit.lookAura = isMehah ? msg.get<uint16_t>() : 0;
+	newOutfit.lookEffect = isMehah ? msg.get<uint16_t>() : 0;
 
-	std::string_view shaderName = isOTC ? msg.getString() : "";
+	std::string_view shaderName = isMehah ? msg.getString() : "";
 	Shader* shader = nullptr;
 	if (!shaderName.empty()) {
 		shader = g_game.shaders.getShaderByName(shaderName);
@@ -2426,7 +2428,7 @@ void ProtocolGame::sendOutfitWindow()
 	}
 
 	size_t maxProtocolOutfits = static_cast<size_t>(g_config[ConfigKeysInteger::MAX_PROTOCOL_OUTFITS]);
-	if (isOTCv8) {
+	if (isOTC) {
 		maxProtocolOutfits = std::numeric_limits<uint8_t>::max();
 	}
 
@@ -2462,59 +2464,61 @@ void ProtocolGame::sendOutfitWindow()
 			msg.add<uint16_t>(mount->clientId);
 			msg.addString(mount->name);
 		}
-		// wings
-		std::vector<const Wing*> wings;
-		for (const Wing& wing : g_game.wings.getWings()) {
-			if (player->hasWing(&wing)) {
-				wings.push_back(&wing);
+		if (isMehah) {
+			// wings
+			std::vector<const Wing*> wings;
+			for (const Wing& wing : g_game.wings.getWings()) {
+				if (player->hasWing(&wing)) {
+					wings.push_back(&wing);
+				}
 			}
-		}
 
-		msg.addByte(wings.size());
-		for (const Wing* wing : wings) {
-			msg.add<uint16_t>(wing->id);
-			msg.addString(wing->name);
-		}
-
-		// auras
-		std::vector<const Aura*> auras;
-		for (const Aura& aura : g_game.auras.getAuras()) {
-			if (player->hasAura(&aura)) {
-				auras.push_back(&aura);
+			msg.addByte(wings.size());
+			for (const Wing* wing : wings) {
+				msg.add<uint16_t>(wing->id);
+				msg.addString(wing->name);
 			}
-		}
 
-		msg.addByte(auras.size());
-		for (const Aura* aura : auras) {
-			msg.add<uint16_t>(aura->id);
-			msg.addString(aura->name);
-		}
-
-		// effects
-		std::vector<const Effect*> effects;
-		for (const Effect& effect : g_game.effects.getEffects()) {
-			if (player->hasEffect(&effect)) {
-				effects.push_back(&effect);
+			// auras
+			std::vector<const Aura*> auras;
+			for (const Aura& aura : g_game.auras.getAuras()) {
+				if (player->hasAura(&aura)) {
+					auras.push_back(&aura);
+				}
 			}
-		}
 
-		msg.addByte(effects.size());
-		for (const Effect* effect : effects) {
-			msg.add<uint16_t>(effect->id);
-			msg.addString(effect->name);
-		}
-		// shader
-		std::vector<const Shader*> shaders;
-		for (const Shader& shader : g_game.shaders.getShaders()) {
-			if (player->hasShader(&shader)) {
-				shaders.push_back(&shader);
+			msg.addByte(auras.size());
+			for (const Aura* aura : auras) {
+				msg.add<uint16_t>(aura->id);
+				msg.addString(aura->name);
 			}
-		}
 
-		msg.addByte(shaders.size());
-		for (const Shader* shader : shaders) {
-			msg.add<uint16_t>(shader->id);
-			msg.addString(shader->name);
+			// effects
+			std::vector<const Effect*> effects;
+			for (const Effect& effect : g_game.effects.getEffects()) {
+				if (player->hasEffect(&effect)) {
+					effects.push_back(&effect);
+				}
+			}
+
+			msg.addByte(effects.size());
+			for (const Effect* effect : effects) {
+				msg.add<uint16_t>(effect->id);
+				msg.addString(effect->name);
+			}
+			// shader
+			std::vector<const Shader*> shaders;
+			for (const Shader& shader : g_game.shaders.getShaders()) {
+				if (player->hasShader(&shader)) {
+					shaders.push_back(&shader);
+				}
+			}
+
+			msg.addByte(shaders.size());
+			for (const Shader* shader : shaders) {
+				msg.add<uint16_t>(shader->id);
+				msg.addString(shader->name);
+			}
 		}
 	}
 
@@ -2626,7 +2630,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 	    static_cast<uint16_t>(std::min<uint32_t>(player->getMaxMana(), std::numeric_limits<uint16_t>::max())));
 
 	msg.addByte(static_cast<uint8_t>(std::min<uint32_t>(player->getMagicLevel(), std::numeric_limits<uint8_t>::max())));
-	if (isOTCv8) {
+	if (isOTC) { //GameSkillsBase
 		msg.addByte(
 		    static_cast<uint8_t>(std::min<uint32_t>(player->getBaseMagicLevel(), std::numeric_limits<uint8_t>::max())));
 	}
@@ -2636,7 +2640,7 @@ void ProtocolGame::AddPlayerStats(NetworkMessage& msg)
 
 	msg.add<uint16_t>(player->getStaminaMinutes());
 
-	if (isOTCv8) {
+	if (isOTC) { // GameSkillsBase
 		msg.add<uint16_t>(player->getBaseSpeed() / 2);
 	}
 
@@ -2656,19 +2660,19 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 {
 	msg.addByte(0xA1);
 
-	if (!isOTCv8) {
+	if (!isOTC) {
 		for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 			msg.addByte(
 			    std::min<uint8_t>(static_cast<uint8_t>(player->getSkillLevel(i)), std::numeric_limits<uint8_t>::max()));
 			msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i)));
 		}
-	} else {
+	} else { //GameSkillsBase //GameBaseSkillU16 //GameDoubleSkills
 		for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 			msg.add<uint16_t>(std::min<uint16_t>(player->getSkillLevel(i), std::numeric_limits<uint16_t>::max()));
 			msg.add<uint16_t>(player->getBaseSkill(i));
 			msg.addByte(static_cast<uint8_t>(player->getSkillPercent(i)));
 		}
-
+		// GameAdditionalSkills		GameLeechAmount
 		for (uint8_t i = SPECIALSKILL_FIRST; i <= SPECIALSKILL_LAST; ++i) {
 			msg.add<uint16_t>(static_cast<uint16_t>(std::min<int32_t>(100, player->varSpecialSkills[i])));
 			msg.add<uint16_t>(0);
@@ -2679,7 +2683,7 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 {
 	uint16_t lookType = outfit.lookType;
-	if (!isOTCv8 && lookType >= 367) {
+	if (!isOTC && lookType >= 367) {
 		lookType = 128;
 	}
 
@@ -2697,12 +2701,15 @@ void ProtocolGame::AddOutfit(NetworkMessage& msg, const Outfit_t& outfit)
 
 	if (isOTC) {
 		msg.add<uint16_t>(outfit.lookMount);
-		msg.add<uint16_t>(outfit.lookWing);
-		msg.add<uint16_t>(outfit.lookAura);
-		msg.add<uint16_t>(outfit.lookEffect);
 
-		Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
-		msg.addString(shader ? shader->name : "");
+		if (isMehah) {
+			msg.add<uint16_t>(outfit.lookWing);
+			msg.add<uint16_t>(outfit.lookAura);
+			msg.add<uint16_t>(outfit.lookEffect);
+
+			Shader* shader = g_game.shaders.getShaderByID(outfit.lookShader);
+			msg.addString(shader ? shader->name : "");
+		}
 	}
 }
 
@@ -2862,21 +2869,13 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 
 void ProtocolGame::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
-	if (isMehah) {
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x34);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.add<uint16_t>(effectId);
-		writeToOutputBuffer(playermsg);
-	} else {
-		NetworkMessage playermsg;
-		playermsg.reset();
-		playermsg.addByte(0x34);
-		playermsg.add<uint32_t>(creature->getID());
-		playermsg.add<uint16_t>(effectId);
-		writeToOutputBuffer(playermsg);
-	}
+	if (!isMehah) return;
+	NetworkMessage playermsg;
+	playermsg.reset();
+	playermsg.addByte(0x34);
+	playermsg.add<uint32_t>(creature->getID());
+	playermsg.add<uint16_t>(effectId);
+	writeToOutputBuffer(playermsg);
 }
 
 void ProtocolGame::sendDetachEffect(const Creature* creature, uint16_t effectId)
@@ -2915,6 +2914,7 @@ void ProtocolGame::sendMapShader(const std::string& shaderName)
 
 void ProtocolGame::sendOTCv8Features()
 {
+	if (isMehah) return;
 	const auto& features = g_config.getOTCFeatures();
 
 	auto msg = getOutputBuffer(1024);
