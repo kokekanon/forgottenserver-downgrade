@@ -1,0 +1,42 @@
+name: Build - Windows - CMake
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install dependencies
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --no-progress
+          choco install ninja --no-progress
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -G Ninja .
+
+      - name: Build with CMake
+        run: |
+          cmake --build build --config Release
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: |
+            build/**/*.exe
+            build/**/*.dll
