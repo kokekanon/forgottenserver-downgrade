@@ -1,42 +1,59 @@
-name: Build - Windows - CMake
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-
-      - name: Install dependencies
-        run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --no-progress
-          choco install ninja --no-progress
-
-      - name: Configure CMake
-        run: |
-          cmake -B build -G Ninja .
-
-      - name: Build with CMake
-        run: |
-          cmake --build build --config Release
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries
-          path: |
-            build/**/*.exe
-            build/**/*.dll
+name: Windows Build  
+  
+on:  
+  push:  
+    branches: [ main, fixOTCR ]  
+  pull_request:  
+    branches: [ main, fixOTCR ]  
+  
+jobs:  
+  build-windows:  
+    runs-on: windows-2022  
+      
+    steps:  
+    - name: Checkout code  
+      uses: actions/checkout@v4  
+      with:  
+        submodules: recursive  
+        fetch-depth: 0  
+        path: src  
+      
+    - name: Setup vcpkg with short path  
+      uses: lukka/run-vcpkg@v11  
+      with:  
+        vcpkgDirectory: 'C:\vcpkg'  
+        vcpkgGitCommitId: '215a2535590f1f63788ac9bd2ed58ad15e6afdff'  
+        runVcpkgInstall: true  
+      
+    - name: Configure CMake with short paths  
+      run: |  
+        cmake -B C:\build -S src -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release -DHTTP=ON -DUSE_LUAJIT=OFF -DBUILD_TESTING=OFF -DSKIP_GIT=OFF  
+      env:  
+        VCPKG_ROOT: C:\vcpkg  
+      
+    - name: Build project  
+      run: |  
+        cmake --build C:\build --config Release --parallel  
+      
+    - name: Verify build output  
+      run: |  
+        if (Test-Path "C:\build\Release\tfs.exe") {  
+          Write-Host "Build successful - tfs.exe created"  
+          $file = Get-Item "C:\build\Release\tfs.exe"  
+          Write-Host "File size: $($file.Length) bytes"  
+          Write-Host "Created: $($file.LastWriteTime)"  
+        } else {  
+          Write-Error "Build failed - tfs.exe not found"  
+          Get-ChildItem C:\build -Recurse -Name "*.exe" | Write-Host  
+          exit 1  
+        }  
+      
+    - name: Upload build artifacts  
+      uses: actions/upload-artifact@v4  
+      with:  
+        name: tfs-windows-x64-${{ github.sha }}  
+        path: |  
+          C:\build\Release\tfs.exe  
+          C:\build\Release\*.dll  
+        retention-days: 30  
+        if-no-files-found: error
